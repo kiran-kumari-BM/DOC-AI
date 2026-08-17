@@ -1,0 +1,1982 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+
+/* =========================================================
+   DOC AI — DOCUMENT WORKSPACE
+========================================================= */
+
+.document-workspace {
+
+    min-height: 100vh;
+
+    background:
+        radial-gradient(
+            circle at 90% 10%,
+            rgba(37,99,235,.06),
+            transparent 25%
+        ),
+
+        #f6f8fc;
+
+    padding: 28px 35px 45px;
+
+}
+
+
+/* =========================================================
+   TOP BAR
+========================================================= */
+
+.workspace-topbar {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    margin-bottom: 25px;
+
+}
+
+
+.workspace-back {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    color: #64748b;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    text-decoration: none;
+
+    transition: .2s ease;
+
+}
+
+
+.workspace-back:hover {
+
+    color: #2563eb;
+
+}
+
+
+.workspace-title-area {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 13px;
+
+}
+
+
+.workspace-file-icon {
+
+    width: 43px;
+
+    height: 43px;
+
+    border-radius: 11px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background: #eff6ff;
+
+    font-size: 19px;
+
+}
+
+
+.workspace-title {
+
+    font-size: 19px;
+
+    font-weight: 800;
+
+    color: #0b1020;
+
+    letter-spacing: -.025em;
+
+    max-width: 450px;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+
+}
+
+
+.workspace-subtitle {
+
+    margin-top: 3px;
+
+    color: #94a3b8;
+
+    font-size: 11px;
+
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.workspace-status {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    padding: 8px 12px;
+
+    border-radius: 999px;
+
+    font-size: 11px;
+
+    font-weight: 800;
+
+}
+
+
+.workspace-status.completed {
+
+    color: #047857;
+
+    background: #ecfdf5;
+
+}
+
+
+.workspace-status.processing {
+
+    color: #b45309;
+
+    background: #fffbeb;
+
+}
+
+
+.workspace-status.failed {
+
+    color: #b91c1c;
+
+    background: #fef2f2;
+
+}
+
+
+.workspace-status-dot {
+
+    width: 7px;
+
+    height: 7px;
+
+    border-radius: 50%;
+
+    background: currentColor;
+
+}
+
+
+/* =========================================================
+   MAIN GRID
+========================================================= */
+
+.workspace-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1.05fr)
+        minmax(0, 1fr);
+
+    gap: 20px;
+
+    align-items: start;
+
+}
+
+
+/* =========================================================
+   CARD
+========================================================= */
+
+.workspace-card {
+
+    background: white;
+
+    border: 1px solid #e8edf4;
+
+    border-radius: 19px;
+
+    box-shadow:
+        0 10px 35px
+        rgba(15,23,42,.05);
+
+    overflow: hidden;
+
+}
+
+
+/* =========================================================
+   CARD HEADER
+========================================================= */
+
+.workspace-card-header {
+
+    min-height: 61px;
+
+    padding: 15px 19px;
+
+    border-bottom:
+        1px solid #eef2f7;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+}
+
+
+.workspace-card-title {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 9px;
+
+    color: #0f172a;
+
+    font-size: 13px;
+
+    font-weight: 800;
+
+}
+
+
+.workspace-card-title-icon {
+
+    color: #2563eb;
+
+}
+
+
+/* =========================================================
+   ACTIONS
+========================================================= */
+
+.workspace-actions {
+
+    display: flex;
+
+    gap: 8px;
+
+}
+
+
+.workspace-action {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    padding: 8px 11px;
+
+    border:
+        1px solid #e2e8f0;
+
+    border-radius: 8px;
+
+    background: white;
+
+    color: #475569;
+
+    font-size: 10px;
+
+    font-weight: 750;
+
+    text-decoration: none;
+
+    transition: .2s ease;
+
+}
+
+
+.workspace-action:hover {
+
+    border-color: #93c5fd;
+
+    color: #2563eb;
+
+}
+
+
+/* =========================================================
+   ORIGINAL DOCUMENT AREA
+========================================================= */
+
+.document-preview {
+
+    min-height: 570px;
+
+    max-height: 650px;
+
+    padding: 30px;
+
+    background:
+
+        radial-gradient(
+            circle at 30% 20%,
+            rgba(148,163,184,.09),
+            transparent 30%
+        ),
+
+        #f8fafc;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    overflow: auto;
+
+}
+
+
+/* =========================================================
+   DOCUMENT PAPER
+========================================================= */
+
+.document-paper {
+
+    width: min(100%, 520px);
+
+    min-height: 470px;
+
+    padding: 20px;
+
+    background: white;
+
+    border: 1px solid #e2e8f0;
+
+    box-shadow:
+        0 20px 50px
+        rgba(15,23,42,.12);
+
+    transform: rotate(-.3deg);
+
+    overflow: auto;
+
+    transition: transform .25s ease;
+
+}
+
+
+/* =========================================================
+   ORIGINAL IMAGE
+========================================================= */
+
+.original-document-image {
+
+    width: 100%;
+
+    height: auto;
+
+    max-height: 570px;
+
+    object-fit: contain;
+
+    display: block;
+
+    margin: auto;
+
+}
+
+
+/* =========================================================
+   FALLBACK TEXT PREVIEW
+========================================================= */
+
+.document-paper-content {
+
+    color: #334155;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 14px;
+
+    line-height: 1.8;
+
+    white-space: pre-wrap;
+
+    word-break: break-word;
+
+}
+
+
+.document-paper-placeholder {
+
+    color: #94a3b8;
+
+    text-align: center;
+
+    padding-top: 160px;
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+}
+
+
+/* =========================================================
+   PREVIEW CONTROLS
+========================================================= */
+
+.preview-controls {
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    padding: 12px;
+
+    border-top:
+        1px solid #eef2f7;
+
+}
+
+
+.preview-btn {
+
+    border: 1px solid #e2e8f0;
+
+    background: white;
+
+    color: #64748b;
+
+    border-radius: 8px;
+
+    padding: 7px 12px;
+
+    font-size: 11px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: .2s ease;
+
+}
+
+
+.preview-btn:hover {
+
+    color: #2563eb;
+
+    border-color: #93c5fd;
+
+}
+
+
+/* =========================================================
+   OCR AREA
+========================================================= */
+
+.ocr-area {
+
+    padding: 20px;
+
+}
+
+
+.ocr-info {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    margin-bottom: 12px;
+
+}
+
+
+.ocr-label {
+
+    font-size: 11px;
+
+    font-weight: 800;
+
+    color: #64748b;
+
+    text-transform: uppercase;
+
+    letter-spacing: .08em;
+
+}
+
+
+.ocr-hint {
+
+    font-size: 10px;
+
+    color: #94a3b8;
+
+}
+
+
+.ocr-textarea {
+
+    width: 100%;
+
+    min-height: 330px;
+
+    resize: vertical;
+
+    border:
+        1px solid #e2e8f0;
+
+    border-radius: 12px;
+
+    background: #f8fafc;
+
+    padding: 17px;
+
+    outline: none;
+
+    color: #334155;
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    font-size: 13px;
+
+    line-height: 1.7;
+
+    transition: .2s ease;
+
+}
+
+
+.ocr-textarea:focus {
+
+    background: white;
+
+    border-color: #93c5fd;
+
+    box-shadow:
+        0 0 0 4px
+        rgba(37,99,235,.07);
+
+}
+
+
+/* =========================================================
+   OCR ACTIONS
+========================================================= */
+
+.ocr-actions {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 10px;
+
+    margin-top: 12px;
+
+}
+
+
+.ocr-save {
+
+    border: 0;
+
+    border-radius: 9px;
+
+    padding: 10px 15px;
+
+    color: white;
+
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #4f46e5
+        );
+
+    font-size: 12px;
+
+    font-weight: 800;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 8px 20px
+        rgba(37,99,235,.18);
+
+    transition: .2s ease;
+
+}
+
+
+.ocr-save:hover {
+
+    transform: translateY(-1px);
+
+}
+
+
+/* =========================================================
+   ASK DOC AI
+========================================================= */
+
+.ai-panel {
+
+    margin-top: 20px;
+
+}
+
+
+.ai-panel-header {
+
+    padding: 18px 20px;
+
+    border-bottom:
+        1px solid #eef2f7;
+
+}
+
+
+.ai-brand {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+}
+
+
+.ai-icon {
+
+    width: 35px;
+
+    height: 35px;
+
+    border-radius: 10px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    color: white;
+
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #7c3aed
+        );
+
+    font-size: 15px;
+
+}
+
+
+.ai-title {
+
+    font-size: 14px;
+
+    font-weight: 800;
+
+    color: #0f172a;
+
+}
+
+
+.ai-description {
+
+    margin-top: 2px;
+
+    color: #94a3b8;
+
+    font-size: 10px;
+
+}
+
+
+/* =========================================================
+   CHAT
+========================================================= */
+
+.chat-box {
+
+    height: 300px;
+
+    overflow-y: auto;
+
+    padding: 18px;
+
+    background: #f8fafc;
+
+}
+
+
+.chat-empty {
+
+    height: 100%;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    align-items: center;
+
+    text-align: center;
+
+    color: #94a3b8;
+
+}
+
+
+.chat-empty-icon {
+
+    width: 45px;
+
+    height: 45px;
+
+    border-radius: 13px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background: #eff6ff;
+
+    color: #2563eb;
+
+    font-size: 18px;
+
+    margin-bottom: 12px;
+
+}
+
+
+.chat-empty-title {
+
+    color: #475569;
+
+    font-size: 13px;
+
+    font-weight: 750;
+
+}
+
+
+.chat-empty-text {
+
+    max-width: 270px;
+
+    margin-top: 5px;
+
+    font-size: 11px;
+
+    line-height: 1.5;
+
+}
+
+
+/* =========================================================
+   CHAT MESSAGE
+========================================================= */
+
+.chat-message {
+
+    margin-bottom: 18px;
+
+}
+
+
+.chat-question {
+
+    display: flex;
+
+    justify-content: flex-end;
+
+}
+
+
+.chat-question-bubble {
+
+    max-width: 80%;
+
+    padding: 10px 13px;
+
+    border-radius:
+        14px 14px 4px 14px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #4f46e5
+        );
+
+    color: white;
+
+    font-size: 12px;
+
+    line-height: 1.5;
+
+}
+
+
+.chat-answer {
+
+    margin-top: 8px;
+
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 8px;
+
+}
+
+
+.chat-ai-mini {
+
+    flex-shrink: 0;
+
+    width: 25px;
+
+    height: 25px;
+
+    border-radius: 8px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    color: white;
+
+    background: #111936;
+
+    font-size: 10px;
+
+}
+
+
+.chat-answer-bubble {
+
+    max-width: 82%;
+
+    padding: 10px 13px;
+
+    border-radius:
+        4px 14px 14px 14px;
+
+    background: white;
+
+    border: 1px solid #e2e8f0;
+
+    color: #334155;
+
+    font-size: 12px;
+
+    line-height: 1.6;
+
+}
+
+
+.chat-citation {
+
+    margin-left: 33px;
+
+    margin-top: 5px;
+
+    color: #94a3b8;
+
+    font-size: 9px;
+
+}
+
+
+/* =========================================================
+   AI SUGGESTIONS
+========================================================= */
+
+.ai-suggestions {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 7px;
+
+    padding: 12px 18px;
+
+    border-top:
+        1px solid #eef2f7;
+
+}
+
+
+.ai-suggestion {
+
+    border:
+        1px solid #dbeafe;
+
+    background: #eff6ff;
+
+    color: #2563eb;
+
+    border-radius: 999px;
+
+    padding: 6px 9px;
+
+    font-size: 10px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: .2s ease;
+
+}
+
+
+.ai-suggestion:hover {
+
+    background: #dbeafe;
+
+}
+
+
+/* =========================================================
+   AI INPUT
+========================================================= */
+
+.ai-form {
+
+    padding: 14px 18px;
+
+    border-top:
+        1px solid #eef2f7;
+
+    background: white;
+
+}
+
+
+.ai-input-wrapper {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 6px;
+
+    border:
+        1px solid #dbe2ea;
+
+    border-radius: 12px;
+
+    background: #f8fafc;
+
+}
+
+
+.ai-input {
+
+    flex: 1;
+
+    border: 0;
+
+    outline: none;
+
+    background: transparent;
+
+    padding: 8px;
+
+    color: #334155;
+
+    font-size: 12px;
+
+}
+
+
+.ai-input::placeholder {
+
+    color: #94a3b8;
+
+}
+
+
+.ai-send {
+
+    width: 36px;
+
+    height: 36px;
+
+    border: 0;
+
+    border-radius: 9px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #4f46e5
+        );
+
+    color: white;
+
+    cursor: pointer;
+
+    font-weight: 800;
+
+    transition: .2s ease;
+
+}
+
+
+.ai-send:hover {
+
+    transform: translateY(-1px);
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 1000px) {
+
+    .workspace-grid {
+
+        grid-template-columns: 1fr;
+
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .document-workspace {
+
+        padding: 20px 14px 35px;
+
+    }
+
+    .workspace-topbar {
+
+        align-items: flex-start;
+
+    }
+
+    .workspace-title {
+
+        max-width: 220px;
+
+    }
+
+    .workspace-actions {
+
+        display: none;
+
+    }
+
+    .document-preview {
+
+        padding: 15px;
+
+    }
+
+    .document-paper {
+
+        padding: 12px;
+
+    }
+
+    .ocr-textarea {
+
+        min-height: 280px;
+
+    }
+
+}
+
+</style>
+
+
+<div class="document-workspace">
+
+
+    <!-- =====================================================
+         TOP BAR
+    ====================================================== -->
+
+    <div class="workspace-topbar">
+
+
+        <div>
+
+            <a
+                href="{{ url_for('dashboard') }}"
+                class="workspace-back"
+            >
+                ← Back to Documents
+            </a>
+
+
+            <div
+                class="workspace-title-area"
+                style="margin-top:13px;"
+            >
+
+                <div class="workspace-file-icon">
+                    📄
+                </div>
+
+
+                <div>
+
+                    <div
+                        class="workspace-title"
+                        title="{{ doc.filename }}"
+                    >
+
+                        {{ doc.filename.split('_', 1)[-1] }}
+
+                    </div>
+
+
+                    <div class="workspace-subtitle">
+
+                        Document #{{ doc.id }}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div>
+
+            {% if doc.status == "completed" %}
+
+                <div class="workspace-status completed">
+
+                    <span
+                        class="workspace-status-dot"
+                    ></span>
+
+                    AI Processed
+
+                </div>
+
+            {% elif doc.status == "processing" %}
+
+                <div class="workspace-status processing">
+
+                    <span
+                        class="workspace-status-dot"
+                    ></span>
+
+                    Processing
+
+                </div>
+
+            {% elif doc.status == "failed" %}
+
+                <div class="workspace-status failed">
+
+                    <span
+                        class="workspace-status-dot"
+                    ></span>
+
+                    Failed
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MAIN WORKSPACE
+    ====================================================== -->
+
+    <div class="workspace-grid">
+
+
+        <!-- =================================================
+             LEFT COLUMN — ORIGINAL DOCUMENT
+        ================================================== -->
+
+        <section class="workspace-card">
+
+
+            <div class="workspace-card-header">
+
+
+                <div class="workspace-card-title">
+
+                    <span
+                        class="workspace-card-title-icon"
+                    >
+                        ◫
+                    </span>
+
+                    Original Document
+
+                </div>
+
+
+                <div class="workspace-actions">
+
+                    {% if doc.status == "completed" %}
+
+                        <a
+                            href="{{ url_for(
+                                'download_pdf',
+                                doc_id=doc.id
+                            ) }}"
+                            class="workspace-action"
+                        >
+                            ↓ PDF
+                        </a>
+
+
+                        <a
+                            href="{{ url_for(
+                                'download_word',
+                                doc_id=doc.id
+                            ) }}"
+                            class="workspace-action"
+                        >
+                            ↓ Word
+                        </a>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 ORIGINAL FILE PREVIEW
+            ============================================== -->
+
+            <div class="document-preview">
+
+
+                <div
+                    class="document-paper"
+                    id="documentPaper"
+                >
+
+
+                    {% if doc.stored_path %}
+
+
+                        {% set filename =
+                            doc.filename|lower
+                        %}
+
+
+                        {% if
+                            filename.endswith('.png')
+                            or
+                            filename.endswith('.jpg')
+                            or
+                            filename.endswith('.jpeg')
+                            or
+                            filename.endswith('.webp')
+                        %}
+
+
+                            <img
+                                src="{{ url_for(
+                                    'document_file',
+                                    doc_id=doc.id
+                                ) }}"
+                                alt="Original document"
+                                class="original-document-image"
+                            >
+
+
+                        {% elif filename.endswith('.pdf') %}
+
+
+                            <iframe
+                                src="{{ url_for(
+                                    'document_file',
+                                    doc_id=doc.id
+                                ) }}"
+                                title="Original PDF"
+                                style="
+                                    width:100%;
+                                    height:570px;
+                                    border:0;
+                                "
+                            ></iframe>
+
+
+                        {% else %}
+
+
+                            <div
+                                class="document-paper-placeholder"
+                            >
+
+                                <div
+                                    style="font-size:35px;"
+                                >
+                                    📄
+                                </div>
+
+                                <div
+                                    style="margin-top:10px;"
+                                >
+                                    Preview unavailable
+                                </div>
+
+                                <div
+                                    style="
+                                        margin-top:5px;
+                                        font-size:11px;
+                                    "
+                                >
+                                    Download the file to view it.
+                                </div>
+
+                            </div>
+
+
+                        {% endif %}
+
+
+                    {% else %}
+
+
+                        <div
+                            class="document-paper-placeholder"
+                        >
+
+                            <div
+                                style="font-size:35px;"
+                            >
+                                📄
+                            </div>
+
+                            <div
+                                style="margin-top:10px;"
+                            >
+                                Document preview unavailable
+                            </div>
+
+                        </div>
+
+
+                    {% endif %}
+
+
+                </div>
+
+
+            </div>
+
+
+            <!-- =============================================
+                 PREVIEW CONTROLS
+            ============================================== -->
+
+            <div class="preview-controls">
+
+                <button
+                    type="button"
+                    class="preview-btn"
+                    onclick="increasePreview()"
+                >
+                    + Zoom
+                </button>
+
+
+                <button
+                    type="button"
+                    class="preview-btn"
+                    onclick="decreasePreview()"
+                >
+                    − Zoom
+                </button>
+
+
+                <button
+                    type="button"
+                    class="preview-btn"
+                    onclick="resetPreview()"
+                >
+                    Reset
+                </button>
+
+            </div>
+
+
+        </section>
+
+
+        <!-- =================================================
+             RIGHT COLUMN
+        ================================================== -->
+
+        <section>
+
+
+            <!-- =============================================
+                 OCR RESULT
+            ============================================== -->
+
+            <div class="workspace-card">
+
+
+                <div class="workspace-card-header">
+
+
+                    <div class="workspace-card-title">
+
+                        <span
+                            class="workspace-card-title-icon"
+                        >
+                            ✦
+                        </span>
+
+                        Extracted Intelligence
+
+                    </div>
+
+                </div>
+
+
+                <div class="ocr-area">
+
+
+                    <div class="ocr-info">
+
+                        <div class="ocr-label">
+                            OCR Result
+                        </div>
+
+
+                        <div class="ocr-hint">
+                            Editable
+                        </div>
+
+                    </div>
+
+
+                    <form method="POST">
+
+
+                        <textarea
+                            name="edited_text"
+                            class="ocr-textarea"
+                            placeholder="Extracted text will appear here..."
+                        >{{ doc.extracted_text or "" }}</textarea>
+
+
+                        <div class="ocr-actions">
+
+
+                            <span
+                                style="
+                                    font-size:10px;
+                                    color:#94a3b8;
+                                "
+                            >
+                                Edit the extracted text if needed.
+                            </span>
+
+
+                            <button
+                                type="submit"
+                                class="ocr-save"
+                            >
+                                Save Changes
+                            </button>
+
+                        </div>
+
+
+                    </form>
+
+
+                </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 ASK DOC AI
+            ============================================== -->
+
+            <div
+                class="workspace-card ai-panel"
+            >
+
+
+                <div class="ai-panel-header">
+
+
+                    <div class="ai-brand">
+
+
+                        <div class="ai-icon">
+                            ✦
+                        </div>
+
+
+                        <div>
+
+                            <div class="ai-title">
+                                Ask DOC AI
+                            </div>
+
+
+                            <div class="ai-description">
+                                Ask questions about this document
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =========================================
+                     CHAT
+                ========================================== -->
+
+                <div
+                    class="chat-box"
+                    id="chat-box"
+                >
+
+
+                    {% if chat_history %}
+
+
+                        {% for item in chat_history %}
+
+
+                            <div
+                                class="chat-message"
+                            >
+
+
+                                <!-- QUESTION -->
+
+                                <div
+                                    class="chat-question"
+                                >
+
+                                    <div
+                                        class="chat-question-bubble"
+                                    >
+                                        {{ item.question }}
+                                    </div>
+
+                                </div>
+
+
+                                <!-- ANSWER -->
+
+                                <div
+                                    class="chat-answer"
+                                >
+
+
+                                    <div
+                                        class="chat-ai-mini"
+                                    >
+                                        AI
+                                    </div>
+
+
+                                    <div
+                                        class="chat-answer-bubble"
+                                    >
+                                        {{ item.answer }}
+                                    </div>
+
+                                </div>
+
+
+                                <!-- CITATION -->
+
+                                {% if item.citation %}
+
+                                    <div
+                                        class="chat-citation"
+                                    >
+
+                                        📄 Based on:
+
+                                        "{{ item.citation[:150] }}..."
+
+                                    </div>
+
+                                {% endif %}
+
+
+                            </div>
+
+
+                        {% endfor %}
+
+
+                    {% else %}
+
+
+                        <div
+                            class="chat-empty"
+                        >
+
+
+                            <div
+                                class="chat-empty-icon"
+                            >
+                                ✦
+                            </div>
+
+
+                            <div
+                                class="chat-empty-title"
+                            >
+                                Ask anything about this document
+                            </div>
+
+
+                            <div
+                                class="chat-empty-text"
+                            >
+
+                                DOC AI can answer questions
+                                using information extracted
+                                from this document.
+
+                            </div>
+
+
+                        </div>
+
+
+                    {% endif %}
+
+
+                </div>
+
+
+                <!-- =========================================
+                     SUGGESTIONS
+                ========================================== -->
+
+                <div
+                    class="ai-suggestions"
+                >
+
+
+                    <button
+                        type="button"
+                        class="ai-suggestion"
+                        onclick="setQuestion(
+                            'Summarize this document'
+                        )"
+                    >
+                        Summarize
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="ai-suggestion"
+                        onclick="setQuestion(
+                            'What are the important points?'
+                        )"
+                    >
+                        Important points
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="ai-suggestion"
+                        onclick="setQuestion(
+                            'What names are mentioned?'
+                        )"
+                    >
+                        Find names
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="ai-suggestion"
+                        onclick="setQuestion(
+                            'What dates are mentioned?'
+                        )"
+                    >
+                        Find dates
+                    </button>
+
+
+                </div>
+
+
+                <!-- =========================================
+                     ASK FORM
+                ========================================== -->
+
+                <form
+                    method="POST"
+                    action="{{ url_for(
+                        'ask_route',
+                        doc_id=doc.id
+                    ) }}"
+                    class="ai-form"
+                >
+
+
+                    <div
+                        class="ai-input-wrapper"
+                    >
+
+
+                        <input
+                            type="text"
+                            name="question"
+                            id="ai-question"
+                            class="ai-input"
+                            placeholder="Ask DOC AI something..."
+                            autocomplete="off"
+                            required
+                        >
+
+
+                        <button
+                            type="submit"
+                            class="ai-send"
+                            title="Ask DOC AI"
+                        >
+                            ↑
+                        </button>
+
+
+                    </div>
+
+
+                </form>
+
+
+            </div>
+
+
+        </section>
+
+
+    </div>
+
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   QUESTION SUGGESTIONS
+========================================================= */
+
+function setQuestion(question) {
+
+    const input =
+        document.getElementById(
+            "ai-question"
+        );
+
+
+    if (!input) {
+        return;
+    }
+
+
+    input.value = question;
+
+    input.focus();
+
+}
+
+
+/* =========================================================
+   AUTO SCROLL CHAT
+========================================================= */
+
+window.addEventListener(
+    "load",
+    function () {
+
+        const chat =
+            document.getElementById(
+                "chat-box"
+            );
+
+
+        if (chat) {
+
+            chat.scrollTop =
+                chat.scrollHeight;
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   DOCUMENT ZOOM
+========================================================= */
+
+let previewScale = 1;
+
+
+function increasePreview() {
+
+    previewScale += 0.1;
+
+
+    if (previewScale > 1.5) {
+
+        previewScale = 1.5;
+
+    }
+
+
+    updatePreview();
+
+}
+
+
+function decreasePreview() {
+
+    previewScale -= 0.1;
+
+
+    if (previewScale < 0.7) {
+
+        previewScale = 0.7;
+
+    }
+
+
+    updatePreview();
+
+}
+
+
+function resetPreview() {
+
+    previewScale = 1;
+
+    updatePreview();
+
+}
+
+
+function updatePreview() {
+
+    const paper =
+        document.getElementById(
+            "documentPaper"
+        );
+
+
+    if (!paper) {
+        return;
+    }
+
+
+    paper.style.transform =
+        `scale(${previewScale})
+         rotate(-0.3deg)`;
+
+}
+
+</script>
+
+{% endblock %}

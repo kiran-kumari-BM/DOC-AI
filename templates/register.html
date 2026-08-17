@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="auth-page">
+
+    <!-- Background decoration -->
+
+    <div class="auth-orb auth-orb-one"></div>
+
+    <div class="auth-orb auth-orb-two"></div>
+
+
+    <div class="auth-container">
+
+
+        <!-- =================================================
+             LEFT BRANDING
+        ================================================== -->
+
+        <section class="auth-brand">
+
+            <div class="auth-brand-badge">
+
+                <span class="auth-brand-badge-dot"></span>
+
+                WELCOME TO DOC AI
+
+            </div>
+
+
+            <h1>
+
+                Turn documents
+
+                <br>
+
+                into <span>intelligence.</span>
+
+            </h1>
+
+
+            <p class="auth-brand-description">
+
+                Upload handwritten notes, forms and
+                documents. DOC AI reads them, extracts
+                the information and lets you ask questions
+                about what was found.
+
+            </p>
+
+
+            <div class="auth-features">
+
+                <div class="auth-feature">
+                    ✦ OCR
+                </div>
+
+                <div class="auth-feature">
+                    ✦ AI Extraction
+                </div>
+
+                <div class="auth-feature">
+                    ✦ Document Q&A
+                </div>
+
+                <div class="auth-feature">
+                    ✦ Secure Workspace
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             REGISTER CARD
+        ================================================== -->
+
+        <section class="auth-card">
+
+
+            <img
+                src="{{ url_for(
+                    'static',
+                    filename='images/doc-ai-logo.png'
+                ) }}"
+                alt="DOC AI"
+                class="auth-logo"
+            >
+
+
+            <h2>
+                Create your account
+            </h2>
+
+
+            <p class="auth-subtitle">
+
+                Start turning your documents into
+                useful information.
+
+            </p>
+
+
+            <!-- Flash messages -->
+
+            {% with messages = get_flashed_messages() %}
+
+                {% if messages %}
+
+                    {% for message in messages %}
+
+                        <div class="auth-alert">
+
+                            {{ message }}
+
+                        </div>
+
+                    {% endfor %}
+
+                {% endif %}
+
+            {% endwith %}
+
+
+            <!-- Register form -->
+
+            <form
+                method="POST"
+                class="auth-form"
+            >
+
+
+                <div class="auth-field">
+
+                    <label for="name">
+                        Full name
+                    </label>
+
+                    <input
+                        id="name"
+                        name="name"
+                        type="text"
+                        class="auth-input"
+                        placeholder="Your name"
+                        autocomplete="name"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="auth-field">
+
+                    <label for="email">
+                        Email address
+                    </label>
+
+                    <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        class="auth-input"
+                        placeholder="you@example.com"
+                        autocomplete="email"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="auth-field">
+
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        class="auth-input"
+                        placeholder="Create a password"
+                        autocomplete="new-password"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="auth-button"
+                >
+
+                    Create DOC AI Account →
+
+                </button>
+
+
+            </form>
+
+
+            <div class="auth-switch">
+
+                Already have an account?
+
+                <a href="{{ url_for('auth.login') }}">
+                    Sign in
+                </a>
+
+            </div>
+
+
+        </section>
+
+    </div>
+
+</div>
+
+{% endblock %}

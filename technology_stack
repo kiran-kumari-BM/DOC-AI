@@ -1,0 +1,33 @@
+Technology Stack
+
+Backend
+
+* Python
+* Flask
+* Flask-Login
+* SQLAlchemy
+
+OCR
+
+* PaddleOCR
+* TrOCR
+* PyTorch
+* Hugging Face Transformers
+
+Document Processing
+
+* OpenCV
+* python-docx
+* ReportLab
+
+AI
+
+* Retrieval-Augmented Generation (RAG)
+* Local document question answering
+
+Frontend
+
+* HTML
+* CSS
+* JavaScript
+* Jinja2

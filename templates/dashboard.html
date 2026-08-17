@@ -1,0 +1,1464 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+
+/* =========================================================
+   DOC AI DASHBOARD
+========================================================= */
+
+.dashboard-shell {
+    min-height: 100vh;
+    display: flex;
+    background: #f6f8fc;
+}
+
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.dashboard-sidebar {
+    width: 245px;
+    min-height: 100vh;
+    background: #0b1020;
+    color: white;
+    padding: 26px 16px;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    display: flex;
+    flex-direction: column;
+}
+
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 10px 30px;
+}
+
+
+.sidebar-brand img {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+
+.sidebar-brand-text {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+}
+
+
+.sidebar-brand-text span {
+    color: #60a5fa;
+}
+
+
+.sidebar-section-title {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #64748b;
+    padding: 0 12px;
+    margin: 12px 0 8px;
+}
+
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    margin: 3px 0;
+    border-radius: 11px;
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 600;
+    transition: .2s ease;
+}
+
+
+.sidebar-link:hover {
+    background: rgba(255,255,255,.06);
+    color: white;
+}
+
+
+.sidebar-link.active {
+    background: linear-gradient(
+        135deg,
+        rgba(37,99,235,.35),
+        rgba(79,70,229,.25)
+    );
+    color: white;
+}
+
+
+.sidebar-icon {
+    width: 20px;
+    text-align: center;
+    font-size: 16px;
+}
+
+
+.sidebar-bottom {
+    margin-top: auto;
+    padding-top: 25px;
+    border-top: 1px solid rgba(255,255,255,.08);
+}
+
+
+.sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+}
+
+
+.sidebar-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(
+        135deg,
+        #2563eb,
+        #7c3aed
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+}
+
+
+.sidebar-user-name {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+
+.sidebar-user-role {
+    color: #64748b;
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   MAIN
+========================================================= */
+
+.dashboard-main {
+    flex: 1;
+    min-width: 0;
+    padding: 34px 42px 60px;
+}
+
+
+/* =========================================================
+   TOP BAR
+========================================================= */
+
+.dashboard-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 35px;
+}
+
+
+.dashboard-eyebrow {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 7px;
+}
+
+
+.dashboard-title {
+    color: #0b1020;
+    font-size: 32px;
+    line-height: 1.1;
+    letter-spacing: -.045em;
+    font-weight: 800;
+}
+
+
+.dashboard-subtitle {
+    margin-top: 8px;
+    color: #64748b;
+    font-size: 14px;
+}
+
+
+.dashboard-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+
+.dashboard-user-avatar {
+    width: 43px;
+    height: 43px;
+    border-radius: 50%;
+    background: linear-gradient(
+        135deg,
+        #2563eb,
+        #7c3aed
+    );
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+}
+
+
+/* =========================================================
+   STATS
+========================================================= */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 28px;
+}
+
+
+.stat-card {
+    background: white;
+    border: 1px solid #e8edf4;
+    border-radius: 17px;
+    padding: 21px;
+    box-shadow:
+        0 8px 30px rgba(15,23,42,.045);
+}
+
+
+.stat-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+
+.stat-label {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+
+.stat-icon {
+    width: 35px;
+    height: 35px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eff6ff;
+}
+
+
+.stat-number {
+    margin-top: 13px;
+    color: #0b1020;
+    font-size: 29px;
+    font-weight: 800;
+    letter-spacing: -.04em;
+}
+
+
+/* =========================================================
+   UPLOAD AREA
+========================================================= */
+
+.upload-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 22px;
+    padding: 30px;
+    margin-bottom: 35px;
+    color: white;
+
+    background:
+        radial-gradient(
+            circle at 85% 20%,
+            rgba(96,165,250,.22),
+            transparent 25%
+        ),
+        linear-gradient(
+            135deg,
+            #0b1020,
+            #172554 60%,
+            #312e81
+        );
+
+    box-shadow:
+        0 20px 50px rgba(15,23,42,.14);
+}
+
+
+.upload-card::after {
+    content: "";
+    position: absolute;
+    width: 230px;
+    height: 230px;
+    border-radius: 50%;
+    right: -80px;
+    bottom: -130px;
+    background: rgba(124,58,237,.25);
+    filter: blur(20px);
+}
+
+
+.upload-content {
+    position: relative;
+    z-index: 2;
+}
+
+
+.upload-eyebrow {
+    color: #93c5fd;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+
+.upload-title {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -.035em;
+    margin-top: 7px;
+}
+
+
+.upload-description {
+    color: #cbd5e1;
+    font-size: 13px;
+    margin-top: 7px;
+}
+
+
+.upload-form {
+    margin-top: 22px;
+}
+
+
+.upload-dropzone {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 18px;
+    border-radius: 15px;
+    border: 1px dashed rgba(147,197,253,.4);
+    background: rgba(255,255,255,.055);
+}
+
+
+.upload-file {
+    color: #cbd5e1;
+    font-size: 13px;
+}
+
+
+.upload-file input {
+    display: none;
+}
+
+
+.upload-file-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    cursor: pointer;
+    padding: 11px 15px;
+    border-radius: 10px;
+    background: rgba(255,255,255,.1);
+    color: white;
+    font-weight: 700;
+    transition: .2s ease;
+}
+
+
+.upload-file-label:hover {
+    background: rgba(255,255,255,.17);
+}
+
+
+.upload-submit {
+    border: 0;
+    padding: 12px 19px;
+    border-radius: 10px;
+    background: white;
+    color: #172554;
+    font-weight: 800;
+    cursor: pointer;
+    transition: .2s ease;
+}
+
+
+.upload-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,.18);
+}
+
+
+/* =========================================================
+   DOCUMENT HEADER
+========================================================= */
+
+.documents-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 17px;
+}
+
+
+.documents-title {
+    color: #0b1020;
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: -.025em;
+}
+
+
+.documents-actions {
+    display: flex;
+    gap: 9px;
+}
+
+
+.dashboard-btn {
+    border: 1px solid #dbe2ea;
+    background: white;
+    color: #475569;
+    border-radius: 9px;
+    padding: 9px 13px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: .2s ease;
+}
+
+
+.dashboard-btn:hover {
+    border-color: #93c5fd;
+    color: #2563eb;
+}
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+.search-box {
+    position: relative;
+    margin-bottom: 18px;
+}
+
+
+.search-box input {
+    width: 100%;
+    height: 46px;
+    border: 1px solid #e2e8f0;
+    border-radius: 11px;
+    padding: 0 15px 0 42px;
+    outline: none;
+    background: white;
+    color: #0f172a;
+}
+
+
+.search-box input:focus {
+    border-color: #93c5fd;
+    box-shadow:
+        0 0 0 4px rgba(37,99,235,.07);
+}
+
+
+.search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+}
+
+
+/* =========================================================
+   DOCUMENT GRID
+========================================================= */
+
+.document-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+    gap: 17px;
+}
+
+
+.document-card {
+    background: white;
+    border: 1px solid #e8edf4;
+    border-radius: 17px;
+    padding: 19px;
+    box-shadow:
+        0 8px 30px rgba(15,23,42,.04);
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease,
+        border-color .2s ease;
+}
+
+
+.document-card:hover {
+    transform: translateY(-3px);
+    border-color: #cbd5e1;
+    box-shadow:
+        0 15px 35px rgba(15,23,42,.08);
+}
+
+
+.document-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+
+.document-icon {
+    width: 43px;
+    height: 43px;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eff6ff;
+    font-size: 19px;
+}
+
+
+.document-check {
+    accent-color: #2563eb;
+    width: 16px;
+    height: 16px;
+}
+
+
+.document-name {
+    margin-top: 15px;
+    font-size: 14px;
+    font-weight: 800;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+.document-meta {
+    margin-top: 5px;
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+
+.document-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 13px;
+    padding: 6px 9px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+
+.status-processing {
+    background: #fffbeb;
+    color: #b45309;
+}
+
+
+.status-completed {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+
+.status-failed {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+
+.document-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 17px;
+    padding-top: 14px;
+    border-top: 1px solid #f1f5f9;
+}
+
+
+.document-btn {
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #475569;
+    border-radius: 8px;
+    padding: 7px 9px;
+    font-size: 11px;
+    font-weight: 750;
+    transition: .2s ease;
+}
+
+
+.document-btn:hover {
+    border-color: #93c5fd;
+    color: #2563eb;
+}
+
+
+.document-btn-danger:hover {
+    border-color: #fecaca;
+    color: #dc2626;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.empty-state {
+    background: white;
+    border: 1px dashed #cbd5e1;
+    border-radius: 18px;
+    padding: 55px 25px;
+    text-align: center;
+}
+
+
+.empty-icon {
+    width: 58px;
+    height: 58px;
+    margin: auto;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eff6ff;
+    font-size: 25px;
+}
+
+
+.empty-title {
+    margin-top: 16px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+
+.empty-description {
+    margin-top: 6px;
+    color: #64748b;
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 1100px) {
+
+    .document-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+
+@media (max-width: 850px) {
+
+    .dashboard-sidebar {
+        width: 72px;
+        padding: 20px 10px;
+    }
+
+    .sidebar-brand-text,
+    .sidebar-section-title,
+    .sidebar-link span:not(.sidebar-icon),
+    .sidebar-user-name,
+    .sidebar-user-role {
+        display: none;
+    }
+
+    .sidebar-brand {
+        justify-content: center;
+        padding-bottom: 25px;
+    }
+
+    .sidebar-link {
+        justify-content: center;
+    }
+
+    .sidebar-user {
+        justify-content: center;
+    }
+
+    .dashboard-main {
+        padding: 25px 20px 50px;
+    }
+
+}
+
+
+@media (max-width: 650px) {
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .document-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-topbar {
+        align-items: flex-start;
+    }
+
+    .dashboard-title {
+        font-size: 26px;
+    }
+
+    .upload-dropzone {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .upload-submit {
+        width: 100%;
+    }
+
+}
+
+</style>
+
+
+<div class="dashboard-shell">
+
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+    <aside class="dashboard-sidebar">
+
+        <div class="sidebar-brand">
+
+            <img
+                src="{{ url_for(
+                    'static',
+                    filename='images/doc-ai-logo.png'
+                ) }}"
+                alt="DOC AI"
+            >
+
+            <div class="sidebar-brand-text">
+                DOC <span>AI</span>
+            </div>
+
+        </div>
+
+
+        <div class="sidebar-section-title">
+            Workspace
+        </div>
+
+
+        <a
+            href="{{ url_for('dashboard') }}"
+            class="sidebar-link active"
+        >
+            <span class="sidebar-icon">⌂</span>
+            <span>Dashboard</span>
+        </a>
+
+
+        <a
+            href="#documents"
+            class="sidebar-link"
+        >
+            <span class="sidebar-icon">▣</span>
+            <span>Documents</span>
+        </a>
+
+
+        <a
+            href="#upload"
+            class="sidebar-link"
+        >
+            <span class="sidebar-icon">✦</span>
+            <span>AI Workspace</span>
+        </a>
+
+
+        <div class="sidebar-section-title">
+            Account
+        </div>
+
+
+        <a
+            href="#"
+            class="sidebar-link"
+        >
+            <span class="sidebar-icon">⚙</span>
+            <span>Settings</span>
+        </a>
+
+
+        <div class="sidebar-bottom">
+
+            <div class="sidebar-user">
+
+                <div class="sidebar-avatar">
+
+                    {{ user.name[0]|upper }}
+
+                </div>
+
+                <div>
+
+                    <div class="sidebar-user-name">
+                        {{ user.name }}
+                    </div>
+
+                    <div class="sidebar-user-role">
+                        DOC AI User
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =====================================================
+         MAIN CONTENT
+    ====================================================== -->
+
+    <main class="dashboard-main">
+
+
+        <!-- =================================================
+             TOP BAR
+        ================================================== -->
+
+        <div class="dashboard-topbar">
+
+            <div>
+
+                <div class="dashboard-eyebrow">
+                    DOCUMENT INTELLIGENCE
+                </div>
+
+                <h1 class="dashboard-title">
+                    Good to see you, {{ user.name }} 👋
+                </h1>
+
+                <p class="dashboard-subtitle">
+                    Manage, understand and interact with your documents.
+                </p>
+
+            </div>
+
+
+            <div class="dashboard-user">
+
+                <div class="dashboard-user-avatar">
+                    {{ user.name[0]|upper }}
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             STATISTICS
+        ================================================== -->
+
+        <div class="stats-grid">
+
+            <div class="stat-card">
+
+                <div class="stat-top">
+
+                    <div class="stat-label">
+                        TOTAL DOCUMENTS
+                    </div>
+
+                    <div class="stat-icon">
+                        📄
+                    </div>
+
+                </div>
+
+                <div class="stat-number">
+                    {{ documents|length }}
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-top">
+
+                    <div class="stat-label">
+                        COMPLETED
+                    </div>
+
+                    <div class="stat-icon">
+                        ✓
+                    </div>
+
+                </div>
+
+                <div class="stat-number">
+
+                    {{ documents |
+                       selectattr("status", "equalto", "completed") |
+                       list |
+                       length }}
+
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-top">
+
+                    <div class="stat-label">
+                        PROCESSING
+                    </div>
+
+                    <div class="stat-icon">
+                        ◌
+                    </div>
+
+                </div>
+
+                <div class="stat-number">
+
+                    {{ documents |
+                       selectattr("status", "equalto", "processing") |
+                       list |
+                       length }}
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             UPLOAD
+        ================================================== -->
+
+        <section
+            id="upload"
+            class="upload-card"
+        >
+
+            <div class="upload-content">
+
+                <div class="upload-eyebrow">
+                    AI DOCUMENT PROCESSING
+                </div>
+
+                <div class="upload-title">
+                    Turn a document into intelligence.
+                </div>
+
+                <div class="upload-description">
+                    Upload handwritten notes, forms or documents
+                    and let DOC AI extract the information.
+                </div>
+
+
+                <form
+                    method="POST"
+                    action="{{ url_for('upload') }}"
+                    enctype="multipart/form-data"
+                    class="upload-form"
+                >
+
+                    <div class="upload-dropzone">
+
+
+                        <div class="upload-file">
+
+                            <label
+                                for="documents"
+                                class="upload-file-label"
+                            >
+
+                                ＋ Choose documents
+
+                            </label>
+
+                            <input
+                                id="documents"
+                                type="file"
+                                name="documents"
+                                multiple
+                                required
+                                accept=".pdf,.png,.jpg,.jpeg"
+                                onchange="showSelectedFiles(this)"
+                            >
+
+                            <span id="file-count">
+                                No files selected
+                            </span>
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            class="upload-submit"
+                        >
+
+                            Start AI Processing →
+
+                        </button>
+
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             DOCUMENTS
+        ================================================== -->
+
+        <section id="documents">
+
+
+            <div class="documents-header">
+
+                <div class="documents-title">
+                    Your Documents
+                </div>
+
+
+                <div class="documents-actions">
+
+                    <button
+                        type="button"
+                        class="dashboard-btn"
+                        onclick="toggleSelectAll()"
+                    >
+                        Select All
+                    </button>
+
+
+                    <form
+                        method="POST"
+                        action="{{ url_for('bulk_download') }}"
+                        style="display:inline"
+                    >
+
+                        <button
+                            type="submit"
+                            class="dashboard-btn"
+                        >
+                            Download ZIP
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+
+            <!-- Search -->
+
+            <div class="search-box">
+
+                <span class="search-icon">
+                    ⌕
+                </span>
+
+                <input
+                    type="text"
+                    id="documentSearch"
+                    placeholder="Search your documents..."
+                    onkeyup="searchDocuments()"
+                >
+
+            </div>
+
+
+            {% if documents %}
+
+
+            <form
+                method="POST"
+                action="{{ url_for('bulk_download') }}"
+                id="documentForm"
+            >
+
+                <div class="document-grid">
+
+
+                    {% for doc in documents %}
+
+                    <div
+                        class="document-card"
+                        data-document-name="{{ doc.filename|lower }}"
+                    >
+
+
+                        <div class="document-top">
+
+
+                            <div class="document-icon">
+                                📄
+                            </div>
+
+
+                            {% if doc.status == "completed" %}
+
+                            <input
+                                type="checkbox"
+                                name="selected_docs"
+                                value="{{ doc.id }}"
+                                class="document-check doc-checkbox"
+                            >
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <div
+                            class="document-name"
+                            title="{{ doc.filename }}"
+                        >
+
+                            {{ doc.filename.split('_', 1)[-1] }}
+
+                        </div>
+
+
+                        <div class="document-meta">
+
+                            Document #{{ doc.id }}
+
+                        </div>
+
+
+                        {% if doc.status == "processing" %}
+
+                        <div class="document-status status-processing">
+
+                            <span class="status-dot"></span>
+
+                            AI Processing
+
+                        </div>
+
+                        {% elif doc.status == "completed" %}
+
+                        <div class="document-status status-completed">
+
+                            <span class="status-dot"></span>
+
+                            Completed
+
+                        </div>
+
+                        {% elif doc.status == "failed" %}
+
+                        <div class="document-status status-failed">
+
+                            <span class="status-dot"></span>
+
+                            Processing Failed
+
+                        </div>
+
+                        {% endif %}
+
+
+                        <div class="document-actions">
+
+
+                            <a
+                                href="{{ url_for(
+                                    'view_document',
+                                    doc_id=doc.id
+                                ) }}"
+                                class="document-btn"
+                            >
+                                Open
+                            </a>
+
+
+                            {% if doc.status == "completed" %}
+
+                            <a
+                                href="{{ url_for(
+                                    'download_pdf',
+                                    doc_id=doc.id
+                                ) }}"
+                                class="document-btn"
+                            >
+                                PDF
+                            </a>
+
+
+                            <a
+                                href="{{ url_for(
+                                    'download_word',
+                                    doc_id=doc.id
+                                ) }}"
+                                class="document-btn"
+                            >
+                                Word
+                            </a>
+
+                            {% endif %}
+
+
+                            <a
+                                href="{{ url_for(
+                                    'delete_document_user',
+                                    doc_id=doc.id
+                                ) }}"
+                                class="document-btn document-btn-danger"
+                                onclick="
+                                    return confirm(
+                                        'Delete this document?'
+                                    )
+                                "
+                            >
+                                Delete
+                            </a>
+
+
+                        </div>
+
+
+                    </div>
+
+                    {% endfor %}
+
+
+                </div>
+
+            </form>
+
+
+            {% else %}
+
+
+            <div class="empty-state">
+
+                <div class="empty-icon">
+                    ✦
+                </div>
+
+                <div class="empty-title">
+                    No documents yet
+                </div>
+
+                <div class="empty-description">
+                    Upload your first document and let DOC AI
+                    turn it into searchable intelligence.
+                </div>
+
+            </div>
+
+
+            {% endif %}
+
+
+        </section>
+
+
+    </main>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   SELECT ALL
+========================================================= */
+
+function toggleSelectAll() {
+
+    const checkboxes =
+        document.querySelectorAll(
+            '.doc-checkbox'
+        );
+
+    if (checkboxes.length === 0) {
+
+        alert(
+            "No completed documents to select."
+        );
+
+        return;
+
+    }
+
+    const allChecked =
+        Array.from(checkboxes)
+            .every(
+                checkbox => checkbox.checked
+            );
+
+    checkboxes.forEach(
+        checkbox => {
+
+            checkbox.checked =
+                !allChecked;
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   FILE SELECTION
+========================================================= */
+
+function showSelectedFiles(input) {
+
+    const counter =
+        document.getElementById(
+            "file-count"
+        );
+
+    if (!input.files.length) {
+
+        counter.textContent =
+            "No files selected";
+
+        return;
+
+    }
+
+    if (input.files.length === 1) {
+
+        counter.textContent =
+            input.files[0].name;
+
+    } else {
+
+        counter.textContent =
+            input.files.length +
+            " documents selected";
+
+    }
+
+}
+
+
+/* =========================================================
+   DOCUMENT SEARCH
+========================================================= */
+
+function searchDocuments() {
+
+    const query =
+        document
+            .getElementById("documentSearch")
+            .value
+            .toLowerCase()
+            .trim();
+
+
+    const cards =
+        document.querySelectorAll(
+            ".document-card"
+        );
+
+
+    cards.forEach(
+        card => {
+
+            const name =
+                card.dataset.documentName;
+
+            if (
+                name.includes(query)
+            ) {
+
+                card.style.display =
+                    "";
+
+            } else {
+
+                card.style.display =
+                    "none";
+
+            }
+
+        }
+    );
+
+}
+
+</script>
+
+{% endblock %}

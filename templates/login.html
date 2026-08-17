@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="auth-page">
+
+    <!-- Background decoration -->
+
+    <div class="auth-orb auth-orb-one"></div>
+
+    <div class="auth-orb auth-orb-two"></div>
+
+
+    <div class="auth-container">
+
+
+        <!-- =================================================
+             LEFT BRANDING
+        ================================================== -->
+
+        <section class="auth-brand">
+
+            <div class="auth-brand-badge">
+
+                <span class="auth-brand-badge-dot"></span>
+
+                AI-POWERED DOCUMENT INTELLIGENCE
+
+            </div>
+
+
+            <h1>
+
+                Your documents.
+
+                <br>
+
+                <span>Understood.</span>
+
+            </h1>
+
+
+            <p class="auth-brand-description">
+
+                DOC AI transforms handwritten and digital
+                documents into structured, searchable,
+                intelligent information — powered by OCR,
+                AI and document understanding.
+
+            </p>
+
+
+            <div class="auth-features">
+
+                <div class="auth-feature">
+                    ✦ Intelligent OCR
+                </div>
+
+                <div class="auth-feature">
+                    ✦ Handwriting Recognition
+                </div>
+
+                <div class="auth-feature">
+                    ✦ Ask Your Documents
+                </div>
+
+                <div class="auth-feature">
+                    ✦ Export Anywhere
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             LOGIN CARD
+        ================================================== -->
+
+        <section class="auth-card">
+
+
+            <img
+                src="{{ url_for(
+                    'static',
+                    filename='images/doc-ai-logo.png'
+                ) }}"
+                alt="DOC AI"
+                class="auth-logo"
+            >
+
+
+            <h2>
+                Welcome back
+            </h2>
+
+
+            <p class="auth-subtitle">
+
+                Sign in to continue working with
+                your documents.
+
+            </p>
+
+
+            <!-- Flash messages -->
+
+            {% with messages = get_flashed_messages() %}
+
+                {% if messages %}
+
+                    {% for message in messages %}
+
+                        <div class="auth-alert">
+
+                            {{ message }}
+
+                        </div>
+
+                    {% endfor %}
+
+                {% endif %}
+
+            {% endwith %}
+
+
+            <!-- Login form -->
+
+            <form
+                method="POST"
+                class="auth-form"
+            >
+
+
+                <div class="auth-field">
+
+                    <label for="email">
+                        Email address
+                    </label>
+
+                    <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        class="auth-input"
+                        placeholder="you@example.com"
+                        autocomplete="email"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="auth-field">
+
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        class="auth-input"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="auth-button"
+                >
+
+                    Sign in to DOC AI →
+
+                </button>
+
+
+            </form>
+
+
+            <div class="auth-switch">
+
+                Don't have an account?
+
+                <a href="{{ url_for('auth.register') }}">
+                    Create one
+                </a>
+
+            </div>
+
+
+        </section>
+
+    </div>
+
+</div>
+
+{% endblock %}
