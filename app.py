@@ -1,8 +1,8 @@
 import os
-import threading
 import zipfile
 import logging
 import uuid
+
 from io import BytesIO
 from functools import wraps
 
@@ -38,6 +38,7 @@ from reportlab.lib.styles import (
 from reportlab.lib.pagesizes import A4
 
 from config import Config
+
 from models import (
     db,
     User,
@@ -45,7 +46,8 @@ from models import (
     ChatHistory
 )
 
-from auth import auth,mail
+from auth import auth, mail
+
 from rag_engine import ask_question
 
 
@@ -56,6 +58,7 @@ from rag_engine import ask_question
 app = Flask(__name__)
 
 app.config.from_object(Config)
+
 mail.init_app(app)
 
 
@@ -121,9 +124,18 @@ app.register_blueprint(auth)
 @login_manager.user_loader
 def load_user(user_id):
 
-    return User.query.get(
-        int(user_id)
-    )
+    try:
+
+        return User.query.get(
+            int(user_id)
+        )
+
+    except (
+        ValueError,
+        TypeError
+    ):
+
+        return None
 
 
 # ============================================================
@@ -148,10 +160,14 @@ def role_required(role):
         @wraps(func)
         def wrapper(*args, **kwargs):
 
-            if current_user.role != role:
+            if (
+                not current_user.is_authenticated
+                or current_user.role != role
+            ):
 
                 flash(
-                    "Access denied."
+                    "Access denied.",
+                    "danger"
                 )
 
                 return redirect(
@@ -198,11 +214,10 @@ def process_ocr_background(
                 f"Starting OCR for document {doc_id}"
             )
 
-            # Run OCR
             from ocr_pipeline import run_ocr
+
             text = run_ocr(path)
 
-            # Save result
             doc.extracted_text = text
 
             doc.status = "completed"
@@ -233,6 +248,25 @@ def process_ocr_background(
 @app.route("/")
 @login_required
 def dashboard():
+
+    # ========================================================
+    # DEBUG
+    # ========================================================
+
+    print(
+        "DEBUG:",
+        current_user.is_authenticated,
+        current_user.id
+        if current_user.is_authenticated
+        else None,
+        current_user.email
+        if current_user.is_authenticated
+        else None,
+        current_user.role
+        if current_user.is_authenticated
+        else None
+    )
+
 
     # ========================================================
     # ADMIN DASHBOARD
@@ -303,40 +337,78 @@ def dashboard():
 # ADMIN — DELETE USER
 # ============================================================
 
-@app.route("/admin/user/<int:user_id>/delete", methods=["POST"])
+@app.route(
+    "/admin/user/<int:user_id>/delete",
+    methods=["POST"]
+)
 @login_required
 def delete_user(user_id):
 
-    # Only administrators can delete users
+    # --------------------------------------------------------
+    # ADMIN CHECK
+    # --------------------------------------------------------
+
     if current_user.role != "admin":
+
         flash(
             "❌ Access denied. Administrator privileges required.",
             "danger"
         )
-        return redirect(url_for("dashboard"))
 
-    user = User.query.get_or_404(user_id)
+        return redirect(
+            url_for("dashboard")
+        )
 
-    # Prevent admin from deleting themselves
+
+    # --------------------------------------------------------
+    # GET USER
+    # --------------------------------------------------------
+
+    user = User.query.get_or_404(
+        user_id
+    )
+
+
+    # --------------------------------------------------------
+    # PREVENT SELF DELETE
+    # --------------------------------------------------------
+
     if user.id == current_user.id:
+
         flash(
             "⚠ You cannot delete your own administrator account.",
             "warning"
         )
-        return redirect(url_for("dashboard"))
 
-    # Prevent deleting another administrator
+        return redirect(
+            url_for("dashboard")
+        )
+
+
+    # --------------------------------------------------------
+    # PREVENT ADMIN DELETE
+    # --------------------------------------------------------
+
     if user.role == "admin":
+
         flash(
             "⚠ Administrator accounts cannot be deleted.",
             "warning"
         )
-        return redirect(url_for("dashboard"))
 
-    # Delete documents belonging to the user
+        return redirect(
+            url_for("dashboard")
+        )
+
+
+    # --------------------------------------------------------
+    # DELETE USER DOCUMENTS
+    # --------------------------------------------------------
+
     documents = Document.query.filter_by(
         user_id=user.id
     ).all()
+
 
     for doc in documents:
 
@@ -344,26 +416,42 @@ def delete_user(user_id):
 
             try:
 
-                if os.path.exists(doc.stored_path):
-                    os.remove(doc.stored_path)
+                if os.path.exists(
+                    doc.stored_path
+                ):
+
+                    os.remove(
+                        doc.stored_path
+                    )
 
             except Exception:
 
                 logging.exception(
-                    f"Could not delete file for document {doc.id}"
+                    f"Could not delete file "
+                    f"for document {doc.id}"
                 )
 
-        db.session.delete(doc)
+        db.session.delete(
+            doc
+        )
 
-    # Delete user
-    db.session.delete(user)
+
+    # --------------------------------------------------------
+    # DELETE USER
+    # --------------------------------------------------------
+
+    db.session.delete(
+        user
+    )
 
     db.session.commit()
+
 
     flash(
         f"✅ User {user.email} deleted successfully.",
         "success"
     )
+
 
     return redirect(
         url_for("dashboard")
@@ -381,43 +469,89 @@ def delete_user(user_id):
 @login_required
 def delete_document_admin(doc_id):
 
-    # Only administrators can delete documents
+    # --------------------------------------------------------
+    # ADMIN CHECK
+    # --------------------------------------------------------
+
     if current_user.role != "admin":
+
         flash(
             "❌ Access denied. Administrator privileges required.",
             "danger"
         )
-        return redirect(url_for("dashboard"))
 
-    doc = Document.query.get_or_404(doc_id)
+        return redirect(
+            url_for("dashboard")
+        )
 
-    # Delete physical file
+
+    # --------------------------------------------------------
+    # GET DOCUMENT
+    # --------------------------------------------------------
+
+    doc = Document.query.get_or_404(
+        doc_id
+    )
+
+
+    # --------------------------------------------------------
+    # DELETE PHYSICAL FILE
+    # --------------------------------------------------------
+
     if doc.stored_path:
 
         try:
 
-            if os.path.exists(doc.stored_path):
-                os.remove(doc.stored_path)
+            if os.path.exists(
+                doc.stored_path
+            ):
+
+                os.remove(
+                    doc.stored_path
+                )
 
         except Exception:
 
             logging.exception(
-                f"Could not delete stored file for document {doc.id}"
+                f"Could not delete stored file "
+                f"for document {doc.id}"
             )
 
-    # Delete database record
-    db.session.delete(doc)
+
+    # --------------------------------------------------------
+    # DELETE CHAT HISTORY
+    # --------------------------------------------------------
+
+    ChatHistory.query.filter_by(
+
+        document_id=doc.id
+
+    ).delete(
+        synchronize_session=False
+    )
+
+
+    # --------------------------------------------------------
+    # DELETE DATABASE RECORD
+    # --------------------------------------------------------
+
+    db.session.delete(
+        doc
+    )
 
     db.session.commit()
+
 
     flash(
         "✅ Document deleted successfully.",
         "success"
     )
 
+
     return redirect(
         url_for("dashboard")
     )
+
 
 # ============================================================
 # UPLOAD DOCUMENTS
@@ -435,10 +569,15 @@ def upload():
     )
 
 
+    # --------------------------------------------------------
+    # CHECK FILES
+    # --------------------------------------------------------
+
     if not files:
 
         flash(
-            "No files selected."
+            "No files selected.",
+            "danger"
         )
 
         return redirect(
@@ -460,17 +599,24 @@ def upload():
     uploaded_count = 0
 
 
+    # ========================================================
+    # PROCESS EACH FILE
+    # ========================================================
+
     for file in files:
 
         if not file:
+
             continue
 
+
         if not file.filename:
+
             continue
 
 
         # ----------------------------------------------------
-        # Secure filename
+        # SECURE ORIGINAL FILENAME
         # ----------------------------------------------------
 
         original_filename = secure_filename(
@@ -479,16 +625,19 @@ def upload():
 
 
         if not original_filename:
+
             continue
 
 
         # ----------------------------------------------------
-        # Create unique filename
+        # CREATE UNIQUE FILENAME
         # ----------------------------------------------------
 
         unique_name = (
+
             f"{uuid.uuid4()}_"
             f"{original_filename}"
+
         )
 
 
@@ -502,72 +651,135 @@ def upload():
 
 
         # ----------------------------------------------------
-        # Save file
+        # SAVE FILE
         # ----------------------------------------------------
 
-        file.save(
-            save_path
+        try:
+
+            file.save(
+                save_path
+            )
+
+        except Exception as e:
+
+            logging.exception(
+                "Failed to save uploaded file."
+            )
+
+            flash(
+                f"Could not save {original_filename}.",
+                "danger"
+            )
+
+            continue
+
+
+        # ----------------------------------------------------
+        # CREATE DATABASE RECORD
+        # ----------------------------------------------------
+
+        try:
+
+            doc = Document(
+
+                filename=unique_name,
+
+                stored_path=save_path,
+
+                user_id=current_user.id,
+
+                status="processing"
+
+            )
+
+
+            db.session.add(
+                doc
+            )
+
+            db.session.commit()
+
+
+            uploaded_count += 1
+
+
+        except Exception:
+
+            db.session.rollback()
+
+            logging.exception(
+                "Failed to create document record."
+            )
+
+            try:
+
+                if os.path.exists(
+                    save_path
+                ):
+
+                    os.remove(
+                        save_path
+                    )
+
+            except Exception:
+
+                pass
+
+            continue
+
+
+        # ----------------------------------------------------
+        # START OCR USING CELERY
+        # ----------------------------------------------------
+
+        try:
+
+            from celery_tasks import process_ocr_task
+
+            process_ocr_task.delay(
+
+                doc.id,
+
+                save_path
+
+            )
+
+        except Exception as e:
+
+            logging.exception(
+                f"Failed to start OCR "
+                f"for document {doc.id}"
+            )
+
+            doc.status = "failed"
+
+            doc.extracted_text = (
+                f"OCR task could not be started: {str(e)}"
+            )
+
+            db.session.commit()
+
+
+    # ========================================================
+    # RESULT
+    # ========================================================
+
+    if uploaded_count > 0:
+
+        flash(
+
+            f"{uploaded_count} document(s) uploaded. "
+            "OCR processing started.",
+            "success"
+
         )
 
+    else:
 
-        # ----------------------------------------------------
-        # Create database record
-        # ----------------------------------------------------
-
-        doc = Document(
-
-            filename=unique_name,
-
-            stored_path=save_path,
-
-            user_id=current_user.id,
-
-            status="processing"
-
+        flash(
+            "No documents were uploaded.",
+            "warning"
         )
-
-
-        db.session.add(
-            doc
-        )
-
-        db.session.commit()
-
-
-        uploaded_count += 1
-
-
-        # ----------------------------------------------------
-        # Start OCR thread
-        # ----------------------------------------------------
-        from celery_tasks import process_ocr_task
-        process_ocr_task.delay(
-            doc.id,
-            save_path
-        )
-        
-
-        
-
-        
-        
-        
-        
-        
-
-        
-
-        
-
-        
-
-
-    flash(
-
-        f"{uploaded_count} document(s) uploaded. "
-        "OCR processing started."
-
-    )
 
 
     return redirect(
@@ -596,8 +808,11 @@ def view_document(doc_id):
     # --------------------------------------------------------
 
     if (
+
         doc.user_id != current_user.id
+
         and current_user.role != "admin"
+
     ):
 
         return "Unauthorized", 403
@@ -637,7 +852,8 @@ def view_document(doc_id):
 
 
         flash(
-            "Document updated successfully."
+            "Document updated successfully.",
+            "success"
         )
 
 
@@ -650,6 +866,10 @@ def view_document(doc_id):
 
         )
 
+
+    # --------------------------------------------------------
+    # RENDER
+    # --------------------------------------------------------
 
     return render_template(
 
@@ -682,15 +902,18 @@ def document_file(doc_id):
     # --------------------------------------------------------
 
     if (
+
         doc.user_id != current_user.id
+
         and current_user.role != "admin"
+
     ):
 
         return "Unauthorized", 403
 
 
     # --------------------------------------------------------
-    # CHECK FILE PATH
+    # CHECK PATH
     # --------------------------------------------------------
 
     if not doc.stored_path:
@@ -701,6 +924,11 @@ def document_file(doc_id):
     if not os.path.exists(
         doc.stored_path
     ):
+
+        logging.error(
+            f"Stored file missing: "
+            f"{doc.stored_path}"
+        )
 
         return "File not found", 404
 
@@ -735,8 +963,11 @@ def delete_document_user(doc_id):
     # --------------------------------------------------------
 
     if (
+
         doc.user_id != current_user.id
+
         and current_user.role != "admin"
+
     ):
 
         return "Unauthorized", 403
@@ -803,7 +1034,8 @@ def delete_document_user(doc_id):
 
 
     flash(
-        "Document deleted successfully."
+        "Document deleted successfully.",
+        "success"
     )
 
 
@@ -833,8 +1065,11 @@ def ask_route(doc_id):
     # --------------------------------------------------------
 
     if (
+
         doc.user_id != current_user.id
+
         and current_user.role != "admin"
+
     ):
 
         return "Unauthorized", 403
@@ -853,7 +1088,8 @@ def ask_route(doc_id):
     if not question:
 
         flash(
-            "Please enter a question."
+            "Please enter a question.",
+            "warning"
         )
 
         return redirect(
@@ -873,7 +1109,8 @@ def ask_route(doc_id):
     if not doc.extracted_text:
 
         flash(
-            "No extracted text is available."
+            "No extracted text is available.",
+            "warning"
         )
 
         return redirect(
@@ -927,6 +1164,8 @@ def ask_route(doc_id):
 
     except Exception as e:
 
+        db.session.rollback()
+
         logging.exception(
             "RAG processing failed"
         )
@@ -939,7 +1178,8 @@ def ask_route(doc_id):
 
 
         flash(
-            "Error processing your question."
+            "Error processing your question.",
+            "danger"
         )
 
 
@@ -973,8 +1213,11 @@ def download_pdf(doc_id):
     # --------------------------------------------------------
 
     if (
+
         doc.user_id != current_user.id
+
         and current_user.role != "admin"
+
     ):
 
         return "Unauthorized", 403
@@ -1018,11 +1261,19 @@ def download_pdf(doc_id):
 
     ).split("\n"):
 
+        # Escape basic HTML-sensitive characters
+        safe_line = (
+            line
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+        )
+
         elements.append(
 
             Paragraph(
 
-                line,
+                safe_line,
 
                 styles["Normal"]
 
@@ -1072,8 +1323,11 @@ def download_word(doc_id):
     # --------------------------------------------------------
 
     if (
+
         doc.user_id != current_user.id
+
         and current_user.role != "admin"
+
     ):
 
         return "Unauthorized", 403
@@ -1146,7 +1400,8 @@ def bulk_download():
     if not selected_ids:
 
         flash(
-            "No documents selected."
+            "No documents selected.",
+            "warning"
         )
 
         return redirect(
@@ -1189,6 +1444,7 @@ def bulk_download():
 
 
             if not doc:
+
                 continue
 
 
@@ -1240,6 +1496,10 @@ def bulk_download():
 
     memory_file.seek(0)
 
+
+    # --------------------------------------------------------
+    # SEND ZIP
+    # --------------------------------------------------------
 
     return send_file(
 
