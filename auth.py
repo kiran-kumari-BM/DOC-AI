@@ -103,7 +103,6 @@ DOC AI Team
 )
 def register():
 
-    # If already logged in
     if current_user.is_authenticated:
 
         return redirect(
@@ -132,7 +131,6 @@ def register():
                 url_for("auth.register")
             )
 
-        # Basic email validation
         if "@" not in email or "." not in email.split("@")[-1]:
 
             flash(
@@ -170,7 +168,7 @@ def register():
         otp = generate_otp()
 
         # -----------------------------------------------------
-        # Store temporary registration information
+        # Store registration information
         # -----------------------------------------------------
 
         session["registration_email"] = email
@@ -208,7 +206,6 @@ def register():
                 e
             )
 
-            # Clear OTP data
             session.pop(
                 "registration_otp",
                 None
@@ -330,10 +327,6 @@ def verify_otp():
             ""
         ).strip()
 
-        # -----------------------------------------------------
-        # Validate OTP format
-        # -----------------------------------------------------
-
         if (
             not entered_otp.isdigit()
             or len(entered_otp) != 6
@@ -412,7 +405,6 @@ def verify_otp():
 
         session["registration_verified"] = True
 
-        # OTP must never be reused
         session.pop(
             "registration_otp",
             None
@@ -445,7 +437,7 @@ def verify_otp():
 
 
 # =========================================================
-# RESEND OTP
+# RESEND REGISTRATION OTP
 # =========================================================
 
 @auth.route(
@@ -469,10 +461,6 @@ def resend_otp():
             url_for("auth.register")
         )
 
-    # ---------------------------------------------------------
-    # Check whether email already registered
-    # ---------------------------------------------------------
-
     existing_user = User.query.filter_by(
         email=email
     ).first()
@@ -490,10 +478,6 @@ def resend_otp():
             url_for("auth.login")
         )
 
-    # ---------------------------------------------------------
-    # Generate new OTP
-    # ---------------------------------------------------------
-
     otp = generate_otp()
 
     session["registration_otp"] = hash_otp(
@@ -510,10 +494,6 @@ def resend_otp():
     ).isoformat()
 
     session["registration_otp_attempts"] = 0
-
-    # ---------------------------------------------------------
-    # Send
-    # ---------------------------------------------------------
 
     try:
 
@@ -567,10 +547,6 @@ def complete_registration():
         "registration_verified"
     )
 
-    # ---------------------------------------------------------
-    # Must verify email first
-    # ---------------------------------------------------------
-
     if not email or not verified:
 
         flash(
@@ -599,10 +575,6 @@ def complete_registration():
             ""
         )
 
-        # -----------------------------------------------------
-        # Validate name
-        # -----------------------------------------------------
-
         if not name:
 
             flash(
@@ -613,10 +585,6 @@ def complete_registration():
             return redirect(
                 url_for("auth.complete_registration")
             )
-
-        # -----------------------------------------------------
-        # Password length
-        # -----------------------------------------------------
 
         if len(password) < 8:
 
@@ -629,10 +597,6 @@ def complete_registration():
                 url_for("auth.complete_registration")
             )
 
-        # -----------------------------------------------------
-        # Confirm password
-        # -----------------------------------------------------
-
         if password != confirm_password:
 
             flash(
@@ -643,10 +607,6 @@ def complete_registration():
             return redirect(
                 url_for("auth.complete_registration")
             )
-
-        # -----------------------------------------------------
-        # Double-check email
-        # -----------------------------------------------------
 
         existing_user = User.query.filter_by(
             email=email
@@ -665,10 +625,6 @@ def complete_registration():
                 url_for("auth.login")
             )
 
-        # -----------------------------------------------------
-        # Create user
-        # -----------------------------------------------------
-
         hashed_password = generate_password_hash(
             password
         )
@@ -686,10 +642,6 @@ def complete_registration():
 
         db.session.commit()
 
-        # -----------------------------------------------------
-        # Clear registration session
-        # -----------------------------------------------------
-
         session.pop(
             "registration_email",
             None
@@ -699,10 +651,6 @@ def complete_registration():
             "registration_verified",
             None
         )
-
-        # -----------------------------------------------------
-        # Welcome message
-        # -----------------------------------------------------
 
         flash(
             f"🎉 Welcome to DOC AI, {name}! Your account has been created successfully.",
@@ -716,6 +664,569 @@ def complete_registration():
     return render_template(
         "complete_registration.html",
         email=email
+    )
+
+
+# =========================================================
+# FORGOT PASSWORD — STEP 1
+# ENTER REGISTERED EMAIL
+# =========================================================
+
+@auth.route(
+    "/forgot-password",
+    methods=["GET", "POST"]
+)
+def forgot_password():
+
+    if current_user.is_authenticated:
+
+        return redirect(
+            url_for("dashboard")
+        )
+
+    if request.method == "POST":
+
+        email = request.form.get(
+            "email",
+            ""
+        ).strip().lower()
+
+        # -----------------------------------------------------
+        # Validate email
+        # -----------------------------------------------------
+
+        if not email:
+
+            flash(
+                "Please enter your email address.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("auth.forgot_password")
+            )
+
+        if "@" not in email or "." not in email.split("@")[-1]:
+
+            flash(
+                "Please enter a valid email address.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("auth.forgot_password")
+            )
+
+        # -----------------------------------------------------
+        # Find account
+        # -----------------------------------------------------
+
+        user = User.query.filter_by(
+            email=email
+        ).first()
+
+        if not user:
+
+            flash(
+                "❌ No DOC AI account exists with this email.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("auth.forgot_password")
+            )
+
+        # -----------------------------------------------------
+        # Generate OTP
+        # -----------------------------------------------------
+
+        otp = generate_otp()
+
+        # -----------------------------------------------------
+        # Store reset information
+        # -----------------------------------------------------
+
+        session["password_reset_email"] = email
+
+        session["password_reset_otp"] = hash_otp(
+            otp
+        )
+
+        session["password_reset_otp_expires"] = (
+            datetime.utcnow()
+            + timedelta(
+                minutes=current_app.config[
+                    "OTP_EXPIRY_MINUTES"
+                ]
+            )
+        ).isoformat()
+
+        session["password_reset_otp_attempts"] = 0
+
+        session.pop(
+            "password_reset_verified",
+            None
+        )
+
+        # -----------------------------------------------------
+        # Send OTP
+        # -----------------------------------------------------
+
+        try:
+
+            msg = Message(
+                subject="DOC AI — Password Reset Code",
+                sender=current_app.config["MAIL_USERNAME"],
+                recipients=[email]
+            )
+
+            msg.body = f"""
+Hello,
+
+You requested to reset your DOC AI password.
+
+Your password reset verification code is:
+
+{otp}
+
+This code will expire in 5 minutes.
+
+If you did not request this password reset,
+you can safely ignore this email.
+
+Regards,
+DOC AI Team
+"""
+
+            mail.send(msg)
+
+        except Exception as e:
+
+            print(
+                "PASSWORD RESET EMAIL ERROR:",
+                e
+            )
+
+            session.pop(
+                "password_reset_otp",
+                None
+            )
+
+            session.pop(
+                "password_reset_otp_expires",
+                None
+            )
+
+            session.pop(
+                "password_reset_otp_attempts",
+                None
+            )
+
+            flash(
+                "❌ Unable to send password reset email. Please try again.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("auth.forgot_password")
+            )
+
+        flash(
+            "📧 Password reset code sent to your email.",
+            "success"
+        )
+
+        return redirect(
+            url_for("auth.verify_reset_otp")
+        )
+
+    return render_template(
+        "forgot_password.html"
+    )
+
+
+# =========================================================
+# FORGOT PASSWORD — STEP 2
+# VERIFY OTP
+# =========================================================
+
+@auth.route(
+    "/verify-reset-otp",
+    methods=["GET", "POST"]
+)
+def verify_reset_otp():
+
+    if current_user.is_authenticated:
+
+        return redirect(
+            url_for("dashboard")
+        )
+
+    email = session.get(
+        "password_reset_email"
+    )
+
+    otp_hash = session.get(
+        "password_reset_otp"
+    )
+
+    expiry_string = session.get(
+        "password_reset_otp_expires"
+    )
+
+    # -----------------------------------------------------
+    # Check session
+    # -----------------------------------------------------
+
+    if not email or not otp_hash or not expiry_string:
+
+        flash(
+            "❌ Password reset session has expired. Please start again.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("auth.forgot_password")
+        )
+
+    # -----------------------------------------------------
+    # Check expiry
+    # -----------------------------------------------------
+
+    try:
+
+        expiry = datetime.fromisoformat(
+            expiry_string
+        )
+
+    except ValueError:
+
+        session.pop(
+            "password_reset_email",
+            None
+        )
+
+        session.pop(
+            "password_reset_otp",
+            None
+        )
+
+        session.pop(
+            "password_reset_otp_expires",
+            None
+        )
+
+        flash(
+            "❌ Invalid password reset session.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("auth.forgot_password")
+        )
+
+    if datetime.utcnow() > expiry:
+
+        session.pop(
+            "password_reset_otp",
+            None
+        )
+
+        session.pop(
+            "password_reset_otp_expires",
+            None
+        )
+
+        session.pop(
+            "password_reset_otp_attempts",
+            None
+        )
+
+        flash(
+            "⏰ Verification code has expired. Please request a new one.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("auth.forgot_password")
+        )
+
+    # -----------------------------------------------------
+    # POST — VERIFY OTP
+    # -----------------------------------------------------
+
+    if request.method == "POST":
+
+        otp = request.form.get(
+            "otp",
+            ""
+        ).strip()
+
+        # -------------------------------------------------
+        # Validate OTP
+        # -------------------------------------------------
+
+        if (
+            not otp.isdigit()
+            or len(otp) != 6
+        ):
+
+            flash(
+                "Please enter the 6-digit verification code.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("auth.verify_reset_otp")
+            )
+
+        # -------------------------------------------------
+        # Attempt limit
+        # -------------------------------------------------
+
+        attempts = session.get(
+            "password_reset_otp_attempts",
+            0
+        )
+
+        if attempts >= 5:
+
+            session.pop(
+                "password_reset_otp",
+                None
+            )
+
+            session.pop(
+                "password_reset_otp_expires",
+                None
+            )
+
+            session.pop(
+                "password_reset_otp_attempts",
+                None
+            )
+
+            flash(
+                "❌ Too many incorrect attempts. Please request a new code.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("auth.forgot_password")
+            )
+
+        # -------------------------------------------------
+        # Compare OTP securely
+        # -------------------------------------------------
+
+        entered_hash = hash_otp(
+            otp
+        )
+
+        if not secrets.compare_digest(
+            entered_hash,
+            otp_hash
+        ):
+
+            session[
+                "password_reset_otp_attempts"
+            ] = attempts + 1
+
+            remaining = 4 - attempts
+
+            flash(
+                f"❌ Incorrect verification code. {remaining} attempts remaining.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("auth.verify_reset_otp")
+            )
+
+        # -------------------------------------------------
+        # OTP VERIFIED
+        # -----------------------------------------------------
+
+        session[
+            "password_reset_verified"
+        ] = True
+
+        # OTP cannot be reused
+        session.pop(
+            "password_reset_otp",
+            None
+        )
+
+        session.pop(
+            "password_reset_otp_expires",
+            None
+        )
+
+        session.pop(
+            "password_reset_otp_attempts",
+            None
+        )
+
+        flash(
+            "✅ Email verified. You can now create a new password.",
+            "success"
+        )
+
+        return redirect(
+            url_for("auth.reset_password")
+        )
+
+    return render_template(
+        "verify_reset_otp.html",
+        email=email
+    )
+
+
+# =========================================================
+# FORGOT PASSWORD — STEP 3
+# ENTER NEW PASSWORD
+# =========================================================
+
+@auth.route(
+    "/reset-password",
+    methods=["GET", "POST"]
+)
+def reset_password():
+
+    if current_user.is_authenticated:
+
+        return redirect(
+            url_for("dashboard")
+        )
+
+    email = session.get(
+        "password_reset_email"
+    )
+
+    verified = session.get(
+        "password_reset_verified"
+    )
+
+    # -----------------------------------------------------
+    # Security check
+    # -----------------------------------------------------
+
+    if not email or not verified:
+
+        flash(
+            "❌ Please verify your email first.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("auth.forgot_password")
+        )
+
+    if request.method == "POST":
+
+        password = request.form.get(
+            "password",
+            ""
+        )
+
+        confirm_password = request.form.get(
+            "confirm_password",
+            ""
+        )
+
+        # -------------------------------------------------
+        # Validate password
+        # -------------------------------------------------
+
+        if not password or not confirm_password:
+
+            flash(
+                "Please enter and confirm your new password.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("auth.reset_password")
+            )
+
+        if len(password) < 8:
+
+            flash(
+                "Password must contain at least 8 characters.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("auth.reset_password")
+            )
+
+        if password != confirm_password:
+
+            flash(
+                "❌ Passwords do not match.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("auth.reset_password")
+            )
+
+        # -------------------------------------------------
+        # Find user
+        # -------------------------------------------------
+
+        user = User.query.filter_by(
+            email=email
+        ).first()
+
+        if not user:
+
+            session.clear()
+
+            flash(
+                "❌ Account no longer exists.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("auth.login")
+            )
+
+        # -------------------------------------------------
+        # Change password
+        # -------------------------------------------------
+
+        user.password = generate_password_hash(
+            password
+        )
+
+        db.session.commit()
+
+        # -------------------------------------------------
+        # Clear password reset session
+        # -------------------------------------------------
+
+        session.pop(
+            "password_reset_email",
+            None
+        )
+
+        session.pop(
+            "password_reset_verified",
+            None
+        )
+
+        flash(
+            "✅ Password changed successfully. Please login.",
+            "success"
+        )
+
+        return redirect(
+            url_for("auth.login")
+        )
+
+    return render_template(
+        "reset_password.html"
     )
 
 
