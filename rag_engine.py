@@ -1,28 +1,100 @@
-import torch
+# import torch
 import numpy as np
-from sentence_transformers import SentenceTransformer
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+# from sentence_transformers import SentenceTransformer
+# from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
 # ---------- Global Lazy Variables ----------
 embedder = None
 tokenizer = None
 model = None
-device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+# device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+device = None
+
 
 
 def load_models():
-    global embedder, tokenizer, model
+    
+    global embedder
+    global tokenizer
+    global model
+    global device
+
+    # ========================================================
+    # Import heavy libraries only when RAG is used
+    # ========================================================
+
+    import torch
+
+    from sentence_transformers import (
+        SentenceTransformer
+    )
+
+    from transformers import (
+        AutoTokenizer,
+        AutoModelForSeq2SeqLM
+    )
+
+    # ========================================================
+    # Device
+    # ========================================================
+
+    if device is None:
+
+        device = torch.device(
+            "cuda"
+            if torch.cuda.is_available()
+            else "cpu"
+        )
+
+    # ========================================================
+    # Embedding model
+    # ========================================================
 
     if embedder is None:
-        print("Loading embedding model...")
-        embedder = SentenceTransformer("all-MiniLM-L6-v2")
+
+        print(
+            "🔄 Loading embedding model..."
+        )
+
+        embedder = SentenceTransformer(
+            "all-MiniLM-L6-v2"
+        )
+
+        print(
+            "✅ Embedding model loaded."
+        )
+
+    # ========================================================
+    # LLM
+    # ========================================================
 
     if tokenizer is None or model is None:
-        print("Loading LLM...")
-        model_name = "google/flan-t5-base"
-        tokenizer = AutoTokenizer.from_pretrained(model_name)
-        model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
-        model.to(device)
+
+        print(
+            "🔄 Loading local LLM..."
+        )
+
+        model_name = (
+            "google/flan-t5-base"
+        )
+
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_name
+        )
+
+        model = AutoModelForSeq2SeqLM.from_pretrained(
+            model_name
+        )
+
+        model.to(
+            device
+        )
+
+        model.eval()
+
+        print(
+            "✅ Local LLM loaded."
+        )
 
 
 def chunk_text(text, chunk_size=400):

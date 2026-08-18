@@ -46,7 +46,6 @@ from models import (
 )
 
 from auth import auth,mail
-from ocr_pipeline import run_ocr
 from rag_engine import ask_question
 
 
@@ -200,6 +199,7 @@ def process_ocr_background(
             )
 
             # Run OCR
+            from ocr_pipeline import run_ocr
             text = run_ocr(path)
 
             # Save result
@@ -540,22 +540,26 @@ def upload():
         # ----------------------------------------------------
         # Start OCR thread
         # ----------------------------------------------------
-
-        thread = threading.Thread(
-
-            target=process_ocr_background,
-
-            args=(
-                app,
-                doc.id,
-                save_path
-            )
-
+        from celery_tasks import process_ocr_task
+        process_ocr_task.delay(
+            doc.id,
+            save_path
         )
+        
 
-        thread.daemon = True
+        
 
-        thread.start()
+        
+        
+        
+        
+        
+
+        
+
+        
+
+        
 
 
     flash(
