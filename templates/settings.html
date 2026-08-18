@@ -1,0 +1,1714 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+
+/* =========================================================
+   DOC AI SETTINGS
+========================================================= */
+
+.settings-page {
+
+    min-height: 100vh;
+
+    display: flex;
+
+    background: #f6f8fc;
+
+}
+
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.settings-sidebar {
+
+    width: 245px;
+
+    min-height: 100vh;
+
+    background: #0b1020;
+
+    color: white;
+
+    padding: 26px 16px;
+
+    position: sticky;
+
+    top: 0;
+
+    align-self: flex-start;
+
+    display: flex;
+
+    flex-direction: column;
+
+}
+
+
+.settings-brand {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 4px 10px 30px;
+
+}
+
+
+.settings-brand img {
+
+    width: 42px;
+
+    height: 42px;
+
+    object-fit: contain;
+
+    border-radius: 10px;
+
+}
+
+
+.settings-brand-text {
+
+    font-size: 20px;
+
+    font-weight: 800;
+
+    letter-spacing: -.04em;
+
+}
+
+
+.settings-brand-text span {
+
+    color: #60a5fa;
+
+}
+
+
+.settings-section-title {
+
+    font-size: 10px;
+
+    font-weight: 800;
+
+    letter-spacing: .12em;
+
+    text-transform: uppercase;
+
+    color: #64748b;
+
+    padding: 0 12px;
+
+    margin: 12px 0 8px;
+
+}
+
+
+.settings-nav-link {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 12px;
+
+    margin: 3px 0;
+
+    border-radius: 11px;
+
+    color: #94a3b8;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    text-decoration: none;
+
+    transition: .2s ease;
+
+}
+
+
+.settings-nav-link:hover {
+
+    background: rgba(255,255,255,.06);
+
+    color: white;
+
+}
+
+
+.settings-nav-link.active {
+
+    background:
+
+        linear-gradient(
+            135deg,
+            rgba(37,99,235,.35),
+            rgba(79,70,229,.25)
+        );
+
+    color: white;
+
+}
+
+
+.settings-nav-icon {
+
+    width: 20px;
+
+    text-align: center;
+
+}
+
+
+.settings-sidebar-bottom {
+
+    margin-top: auto;
+
+    padding-top: 20px;
+
+    border-top:
+
+        1px solid
+        rgba(255,255,255,.08);
+
+}
+
+
+.settings-user {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 10px;
+
+}
+
+
+.settings-avatar {
+
+    width: 36px;
+
+    height: 36px;
+
+    border-radius: 50%;
+
+    background:
+
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #7c3aed
+        );
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-weight: 800;
+
+}
+
+
+.settings-user-name {
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+}
+
+
+.settings-user-role {
+
+    color: #64748b;
+
+    font-size: 11px;
+
+}
+
+
+/* =========================================================
+   MAIN
+========================================================= */
+
+.settings-main {
+
+    flex: 1;
+
+    min-width: 0;
+
+    padding: 40px 48px 70px;
+
+    max-width: 1100px;
+
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.settings-header {
+
+    margin-bottom: 30px;
+
+}
+
+
+.settings-eyebrow {
+
+    color: #64748b;
+
+    font-size: 11px;
+
+    font-weight: 800;
+
+    letter-spacing: .12em;
+
+    text-transform: uppercase;
+
+}
+
+
+.settings-title {
+
+    margin-top: 7px;
+
+    color: #0b1020;
+
+    font-size: 34px;
+
+    font-weight: 800;
+
+    letter-spacing: -.045em;
+
+}
+
+
+.settings-description {
+
+    margin-top: 7px;
+
+    color: #64748b;
+
+    font-size: 14px;
+
+}
+
+
+/* =========================================================
+   ALERTS
+========================================================= */
+
+.settings-alert {
+
+    padding: 13px 16px;
+
+    border-radius: 12px;
+
+    margin-bottom: 15px;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+}
+
+
+.settings-alert.success {
+
+    background: #ecfdf5;
+
+    color: #047857;
+
+    border: 1px solid #a7f3d0;
+
+}
+
+
+.settings-alert.danger {
+
+    background: #fef2f2;
+
+    color: #b91c1c;
+
+    border: 1px solid #fecaca;
+
+}
+
+
+.settings-alert.info {
+
+    background: #eff6ff;
+
+    color: #1d4ed8;
+
+    border: 1px solid #bfdbfe;
+
+}
+
+
+/* =========================================================
+   SETTINGS GRID
+========================================================= */
+
+.settings-grid {
+
+    display: grid;
+
+    grid-template-columns: 1fr;
+
+    gap: 20px;
+
+}
+
+
+/* =========================================================
+   CARD
+========================================================= */
+
+.settings-card {
+
+    background: white;
+
+    border:
+
+        1px solid
+        #e8edf4;
+
+    border-radius: 18px;
+
+    padding: 25px;
+
+    box-shadow:
+
+        0 8px 30px
+        rgba(15,23,42,.045);
+
+}
+
+
+.settings-card-header {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 13px;
+
+    margin-bottom: 22px;
+
+}
+
+
+.settings-card-icon {
+
+    width: 42px;
+
+    height: 42px;
+
+    border-radius: 11px;
+
+    background: #eff6ff;
+
+    color: #2563eb;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 18px;
+
+}
+
+
+.settings-card-title {
+
+    color: #0f172a;
+
+    font-size: 16px;
+
+    font-weight: 800;
+
+}
+
+
+.settings-card-description {
+
+    margin-top: 3px;
+
+    color: #94a3b8;
+
+    font-size: 11px;
+
+}
+
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.settings-form {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 16px;
+
+}
+
+
+.settings-field {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+
+}
+
+
+.settings-field label {
+
+    color: #334155;
+
+    font-size: 12px;
+
+    font-weight: 750;
+
+}
+
+
+.settings-field input {
+
+    width: 100%;
+
+    height: 46px;
+
+    padding: 0 13px;
+
+    border:
+
+        1px solid
+        #dbe2ea;
+
+    border-radius: 10px;
+
+    background: #f8fafc;
+
+    outline: none;
+
+    color: #0f172a;
+
+    font-size: 13px;
+
+    transition: .2s ease;
+
+}
+
+
+.settings-field input:focus {
+
+    background: white;
+
+    border-color: #60a5fa;
+
+    box-shadow:
+
+        0 0 0 4px
+        rgba(37,99,235,.07);
+
+}
+
+
+/* =========================================================
+   BUTTON
+========================================================= */
+
+.settings-button {
+
+    align-self: flex-start;
+
+    border: 0;
+
+    border-radius: 10px;
+
+    padding: 11px 17px;
+
+    background:
+
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #4f46e5
+        );
+
+    color: white;
+
+    font-size: 12px;
+
+    font-weight: 800;
+
+    cursor: pointer;
+
+    box-shadow:
+
+        0 8px 20px
+        rgba(37,99,235,.18);
+
+    transition: .2s ease;
+
+}
+
+
+.settings-button:hover {
+
+    transform: translateY(-1px);
+
+}
+
+
+/* =========================================================
+   PREFERENCE ROW
+========================================================= */
+
+.preference-row {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 17px 0;
+
+    border-bottom:
+
+        1px solid
+        #eef2f7;
+
+}
+
+
+.preference-row:last-child {
+
+    border-bottom: 0;
+
+    padding-bottom: 0;
+
+}
+
+
+.preference-name {
+
+    color: #0f172a;
+
+    font-size: 13px;
+
+    font-weight: 750;
+
+}
+
+
+.preference-description {
+
+    margin-top: 4px;
+
+    color: #94a3b8;
+
+    font-size: 11px;
+
+    line-height: 1.5;
+
+}
+
+
+/* =========================================================
+   SELECT
+========================================================= */
+
+.preference-select {
+
+    min-width: 145px;
+
+    height: 40px;
+
+    padding: 0 10px;
+
+    border:
+
+        1px solid
+        #dbe2ea;
+
+    border-radius: 9px;
+
+    background: white;
+
+    color: #334155;
+
+    outline: none;
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+}
+
+
+/* =========================================================
+   TOGGLE
+========================================================= */
+
+.toggle {
+
+    position: relative;
+
+    width: 48px;
+
+    height: 27px;
+
+    flex-shrink: 0;
+
+}
+
+
+.toggle input {
+
+    opacity: 0;
+
+    width: 0;
+
+    height: 0;
+
+}
+
+
+.toggle-slider {
+
+    position: absolute;
+
+    inset: 0;
+
+    cursor: pointer;
+
+    border-radius: 999px;
+
+    background: #cbd5e1;
+
+    transition: .25s ease;
+
+}
+
+
+.toggle-slider::before {
+
+    content: "";
+
+    position: absolute;
+
+    width: 21px;
+
+    height: 21px;
+
+    left: 3px;
+
+    top: 3px;
+
+    border-radius: 50%;
+
+    background: white;
+
+    box-shadow:
+
+        0 2px 5px
+        rgba(15,23,42,.2);
+
+    transition: .25s ease;
+
+}
+
+
+.toggle input:checked + .toggle-slider {
+
+    background: #2563eb;
+
+}
+
+
+.toggle input:checked + .toggle-slider::before {
+
+    transform: translateX(21px);
+
+}
+
+
+/* =========================================================
+   DARK MODE
+========================================================= */
+
+body.doc-ai-dark {
+
+    background: #080d1b;
+
+}
+
+
+body.doc-ai-dark .settings-page {
+
+    background: #080d1b;
+
+}
+
+
+body.doc-ai-dark .settings-main {
+
+    color: #e2e8f0;
+
+}
+
+
+body.doc-ai-dark .settings-title {
+
+    color: white;
+
+}
+
+
+body.doc-ai-dark .settings-card {
+
+    background: #111827;
+
+    border-color: #1e293b;
+
+}
+
+
+body.doc-ai-dark .settings-card-title {
+
+    color: white;
+
+}
+
+
+body.doc-ai-dark .settings-card-description,
+
+body.doc-ai-dark .preference-description {
+
+    color: #94a3b8;
+
+}
+
+
+body.doc-ai-dark .preference-name {
+
+    color: #f1f5f9;
+
+}
+
+
+body.doc-ai-dark .settings-field label {
+
+    color: #cbd5e1;
+
+}
+
+
+body.doc-ai-dark .settings-field input {
+
+    background: #0f172a;
+
+    color: white;
+
+    border-color: #334155;
+
+}
+
+
+body.doc-ai-dark .preference-select {
+
+    background: #0f172a;
+
+    color: white;
+
+    border-color: #334155;
+
+}
+
+
+body.doc-ai-dark .preference-row {
+
+    border-color: #1e293b;
+
+}
+
+
+/* =========================================================
+   COMPACT MODE
+========================================================= */
+
+body.doc-ai-compact .settings-card {
+
+    padding: 19px;
+
+}
+
+
+body.doc-ai-compact .settings-main {
+
+    padding-top: 25px;
+
+}
+
+
+body.doc-ai-compact .preference-row {
+
+    padding: 11px 0;
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 850px) {
+
+    .settings-sidebar {
+
+        width: 72px;
+
+        padding: 20px 10px;
+
+    }
+
+    .settings-brand-text,
+    .settings-section-title,
+    .settings-nav-link span:not(.settings-nav-icon),
+    .settings-user-name,
+    .settings-user-role {
+
+        display: none;
+
+    }
+
+    .settings-brand {
+
+        justify-content: center;
+
+    }
+
+    .settings-nav-link {
+
+        justify-content: center;
+
+    }
+
+    .settings-user {
+
+        justify-content: center;
+
+    }
+
+    .settings-main {
+
+        padding: 28px 20px 50px;
+
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .settings-title {
+
+        font-size: 27px;
+
+    }
+
+    .preference-row {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+
+    }
+
+    .preference-select {
+
+        width: 100%;
+
+    }
+
+}
+
+</style>
+
+
+<div class="settings-page">
+
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+    <aside class="settings-sidebar">
+
+
+        <div class="settings-brand">
+
+            <img
+                src="{{ url_for(
+                    'static',
+                    filename='images/doc-ai-logo.png'
+                ) }}"
+                alt="DOC AI"
+            >
+
+            <div class="settings-brand-text">
+
+                DOC <span>AI</span>
+
+            </div>
+
+        </div>
+
+
+        <div class="settings-section-title">
+            Workspace
+        </div>
+
+
+        <a
+            href="{{ url_for('dashboard') }}"
+            class="settings-nav-link"
+        >
+
+            <span class="settings-nav-icon">
+                ⌂
+            </span>
+
+            <span>
+                Dashboard
+            </span>
+
+        </a>
+
+
+        <a
+            href="{{ url_for('dashboard') }}#documents"
+            class="settings-nav-link"
+        >
+
+            <span class="settings-nav-icon">
+                ▣
+            </span>
+
+            <span>
+                Documents
+            </span>
+
+        </a>
+
+
+        <a
+            href="{{ url_for('dashboard') }}#upload"
+            class="settings-nav-link"
+        >
+
+            <span class="settings-nav-icon">
+                ✦
+            </span>
+
+            <span>
+                AI Workspace
+            </span>
+
+        </a>
+
+
+        <div class="settings-section-title">
+            Account
+        </div>
+
+
+        <a
+            href="{{ url_for('auth.settings') }}"
+            class="settings-nav-link active"
+        >
+
+            <span class="settings-nav-icon">
+                ⚙
+            </span>
+
+            <span>
+                Settings
+            </span>
+
+        </a>
+
+
+        <div class="settings-sidebar-bottom">
+
+
+            <div class="settings-user">
+
+                <div class="settings-avatar">
+
+                    {{ user.name[0]|upper }}
+
+                </div>
+
+                <div>
+
+                    <div class="settings-user-name">
+                        {{ user.name }}
+                    </div>
+
+                    <div class="settings-user-role">
+                        DOC AI User
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <form
+                method="POST"
+                action="{{ url_for('auth.logout') }}"
+            >
+
+                <button
+                    type="submit"
+                    class="sidebar-logout"
+                >
+
+                    <span class="sidebar-icon">
+                        ⇥
+                    </span>
+
+                    <span>
+                        Logout
+                    </span>
+
+                </button>
+
+            </form>
+
+
+        </div>
+
+
+    </aside>
+
+
+    <!-- =====================================================
+         MAIN SETTINGS
+    ====================================================== -->
+
+    <main class="settings-main">
+
+
+        <header class="settings-header">
+
+            <div class="settings-eyebrow">
+                ACCOUNT & PREFERENCES
+            </div>
+
+            <h1 class="settings-title">
+                Settings
+            </h1>
+
+            <p class="settings-description">
+                Manage your DOC AI profile and personalize your workspace.
+            </p>
+
+        </header>
+
+
+        <!-- =================================================
+             FLASH MESSAGES
+        ================================================== -->
+
+        {% with messages = get_flashed_messages(
+            with_categories=true
+        ) %}
+
+            {% if messages %}
+
+                {% for category, message in messages %}
+
+                    <div
+                        class="settings-alert {{ category }}"
+                    >
+                        {{ message }}
+                    </div>
+
+                {% endfor %}
+
+            {% endif %}
+
+        {% endwith %}
+
+
+        <div class="settings-grid">
+
+
+            <!-- =================================================
+                 PROFILE
+            ================================================== -->
+
+            <section class="settings-card">
+
+
+                <div class="settings-card-header">
+
+                    <div class="settings-card-icon">
+                        👤
+                    </div>
+
+                    <div>
+
+                        <div class="settings-card-title">
+                            Profile
+                        </div>
+
+                        <div class="settings-card-description">
+                            Update your DOC AI account information.
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <form
+                    method="POST"
+                    class="settings-form"
+                >
+
+                    <input
+                        type="hidden"
+                        name="action"
+                        value="update_profile"
+                    >
+
+
+                    <div class="settings-field">
+
+                        <label for="name">
+                            Name
+                        </label>
+
+                        <input
+                            id="name"
+                            type="text"
+                            name="name"
+                            value="{{ user.name }}"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="settings-field">
+
+                        <label for="email">
+                            Email
+                        </label>
+
+                        <input
+                            id="email"
+                            type="email"
+                            value="{{ user.email }}"
+                            disabled
+                        >
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="settings-button"
+                    >
+                        Save Profile
+                    </button>
+
+                </form>
+
+
+            </section>
+
+
+            <!-- =================================================
+                 SECURITY
+            ================================================== -->
+
+            <section class="settings-card">
+
+
+                <div class="settings-card-header">
+
+                    <div class="settings-card-icon">
+                        🔐
+                    </div>
+
+                    <div>
+
+                        <div class="settings-card-title">
+                            Security
+                        </div>
+
+                        <div class="settings-card-description">
+                            Keep your account protected.
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <form
+                    method="POST"
+                    class="settings-form"
+                >
+
+                    <input
+                        type="hidden"
+                        name="action"
+                        value="change_password"
+                    >
+
+
+                    <div class="settings-field">
+
+                        <label for="current_password">
+                            Current Password
+                        </label>
+
+                        <input
+                            id="current_password"
+                            type="password"
+                            name="current_password"
+                            placeholder="Enter current password"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="settings-field">
+
+                        <label for="new_password">
+                            New Password
+                        </label>
+
+                        <input
+                            id="new_password"
+                            type="password"
+                            name="new_password"
+                            placeholder="Minimum 8 characters"
+                            minlength="8"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="settings-field">
+
+                        <label for="confirm_password">
+                            Confirm New Password
+                        </label>
+
+                        <input
+                            id="confirm_password"
+                            type="password"
+                            name="confirm_password"
+                            placeholder="Repeat new password"
+                            minlength="8"
+                            required
+                        >
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="settings-button"
+                    >
+                        Change Password
+                    </button>
+
+                </form>
+
+
+            </section>
+
+
+            <!-- =================================================
+                 APPEARANCE
+            ================================================== -->
+
+            <section class="settings-card">
+
+
+                <div class="settings-card-header">
+
+                    <div class="settings-card-icon">
+                        🎨
+                    </div>
+
+                    <div>
+
+                        <div class="settings-card-title">
+                            Appearance
+                        </div>
+
+                        <div class="settings-card-description">
+                            Customize how DOC AI looks.
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- THEME -->
+
+                <div class="preference-row">
+
+                    <div>
+
+                        <div class="preference-name">
+                            Theme
+                        </div>
+
+                        <div class="preference-description">
+                            Choose the appearance of your DOC AI workspace.
+                        </div>
+
+                    </div>
+
+
+                    <select
+                        id="themeSelect"
+                        class="preference-select"
+                        onchange="changeTheme(this.value)"
+                    >
+
+                        <option value="light">
+                            Light
+                        </option>
+
+                        <option value="dark">
+                            Dark
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- COMPACT -->
+
+                <div class="preference-row">
+
+                    <div>
+
+                        <div class="preference-name">
+                            Compact Mode
+                        </div>
+
+                        <div class="preference-description">
+                            Reduce spacing to fit more information on screen.
+                        </div>
+
+                    </div>
+
+
+                    <label class="toggle">
+
+                        <input
+                            type="checkbox"
+                            id="compactToggle"
+                            onchange="toggleCompact(this.checked)"
+                        >
+
+                        <span class="toggle-slider"></span>
+
+                    </label>
+
+                </div>
+
+
+                <!-- ANIMATIONS -->
+
+                <div class="preference-row">
+
+                    <div>
+
+                        <div class="preference-name">
+                            Interface Animations
+                        </div>
+
+                        <div class="preference-description">
+                            Enable smooth interface transitions.
+                        </div>
+
+                    </div>
+
+
+                    <label class="toggle">
+
+                        <input
+                            type="checkbox"
+                            id="animationToggle"
+                            checked
+                            onchange="toggleAnimations(this.checked)"
+                        >
+
+                        <span class="toggle-slider"></span>
+
+                    </label>
+
+                </div>
+
+
+            </section>
+
+
+            <!-- =================================================
+                 ABOUT
+            ================================================== -->
+
+            <section class="settings-card">
+
+
+                <div class="settings-card-header">
+
+                    <div class="settings-card-icon">
+                        ✦
+                    </div>
+
+                    <div>
+
+                        <div class="settings-card-title">
+                            About DOC AI
+                        </div>
+
+                        <div class="settings-card-description">
+                            Your intelligent document workspace.
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="preference-row">
+
+                    <div>
+
+                        <div class="preference-name">
+                            DOC AI Version
+                        </div>
+
+                        <div class="preference-description">
+                            Current application version.
+                        </div>
+
+                    </div>
+
+                    <strong>
+                        Phase 2
+                    </strong>
+
+                </div>
+
+
+                <div class="preference-row">
+
+                    <div>
+
+                        <div class="preference-name">
+                            Platform
+                        </div>
+
+                        <div class="preference-description">
+                            AI-powered document processing and question answering.
+                        </div>
+
+                    </div>
+
+                    <strong>
+                        DOC AI
+                    </strong>
+
+                </div>
+
+
+            </section>
+
+
+        </div>
+
+
+    </main>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   LOAD SAVED SETTINGS
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const theme =
+            localStorage.getItem(
+                "docai-theme"
+            ) || "light";
+
+
+        const compact =
+            localStorage.getItem(
+                "docai-compact"
+            ) === "true";
+
+
+        const animations =
+            localStorage.getItem(
+                "docai-animations"
+            ) !== "false";
+
+
+        /* Theme */
+
+        applyTheme(theme);
+
+        document.getElementById(
+            "themeSelect"
+        ).value = theme;
+
+
+        /* Compact */
+
+        document.getElementById(
+            "compactToggle"
+        ).checked = compact;
+
+        document.body.classList.toggle(
+            "doc-ai-compact",
+            compact
+        );
+
+
+        /* Animations */
+
+        document.getElementById(
+            "animationToggle"
+        ).checked = animations;
+
+        document.body.classList.toggle(
+            "doc-ai-no-animations",
+            !animations
+        );
+
+    }
+);
+
+
+/* =========================================================
+   THEME
+========================================================= */
+
+function changeTheme(theme) {
+
+    localStorage.setItem(
+        "docai-theme",
+        theme
+    );
+
+    applyTheme(theme);
+
+}
+
+
+function applyTheme(theme) {
+
+    document.body.classList.toggle(
+        "doc-ai-dark",
+        theme === "dark"
+    );
+
+}
+
+
+/* =========================================================
+   COMPACT MODE
+========================================================= */
+
+function toggleCompact(enabled) {
+
+    localStorage.setItem(
+        "docai-compact",
+        enabled
+    );
+
+    document.body.classList.toggle(
+        "doc-ai-compact",
+        enabled
+    );
+
+}
+
+
+/* =========================================================
+   ANIMATIONS
+========================================================= */
+
+function toggleAnimations(enabled) {
+
+    localStorage.setItem(
+        "docai-animations",
+        enabled
+    );
+
+    document.body.classList.toggle(
+        "doc-ai-no-animations",
+        !enabled
+    );
+
+}
+
+</script>
+
+{% endblock %}

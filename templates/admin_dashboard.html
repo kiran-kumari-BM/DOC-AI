@@ -1,81 +1,1403 @@
 {% extends "base.html" %}
+
 {% block content %}
 
-<h2>🛠 Admin Dashboard</h2>
+<style>
 
-<hr>
+/* =========================================================
+   DOC AI — ADMIN DASHBOARD
+========================================================= */
 
-<h3>📊 System Statistics</h3>
-<ul>
-    <li>Total Users: {{ total_users }}</li>
-    <li>Total Documents: {{ total_docs }}</li>
-    <li>Completed OCR: {{ total_completed }}</li>
-    <li>Failed OCR: {{ total_failed }}</li>
-</ul>
+.admin-shell {
+    min-height: 100vh;
+    display: flex;
+    background: #f6f8fc;
+}
 
-<hr>
 
-<h3>👥 All Users</h3>
+/* =========================================================
+   SIDEBAR
+========================================================= */
 
-<table border="1" cellpadding="8" width="100%">
-<tr>
-    <th>ID</th>
-    <th>Name</th>
-    <th>Email</th>
-    <th>Role</th>
-    <th>Action</th>
-</tr>
+.admin-sidebar {
+    width: 245px;
+    min-height: 100vh;
+    background: #0b1020;
+    color: white;
+    padding: 25px 15px;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    display: flex;
+    flex-direction: column;
+}
 
-{% for user in users %}
-<tr>
-    <td>{{ user.id }}</td>
-    <td>{{ user.name }}</td>
-    <td>{{ user.email }}</td>
-    <td>{{ user.role }}</td>
-    <td>
-        {% if user.role != "admin" %}
-        <a href="{{ url_for('delete_user', user_id=user.id) }}"
-           onclick="return confirm('Delete this user?')">
-           ❌ Delete
+
+.admin-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 10px 30px;
+}
+
+
+.admin-brand img {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+
+.admin-brand-name {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -.04em;
+}
+
+
+.admin-brand-name span {
+    color: #60a5fa;
+}
+
+
+.admin-section-title {
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: 0 12px;
+    margin: 12px 0 8px;
+}
+
+
+.admin-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    margin: 3px 0;
+    border-radius: 11px;
+    color: #94a3b8;
+    font-size: 13px;
+    font-weight: 650;
+    transition: .2s ease;
+    text-decoration: none;
+}
+
+
+.admin-link:hover {
+    background: rgba(255,255,255,.06);
+    color: white;
+}
+
+
+.admin-link.active {
+    background:
+        linear-gradient(
+            135deg,
+            rgba(37,99,235,.35),
+            rgba(79,70,229,.25)
+        );
+    color: white;
+}
+
+
+.admin-link-icon {
+    width: 20px;
+    text-align: center;
+}
+
+
+.admin-sidebar-bottom {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,.08);
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+.admin-logout-form {
+    margin: 0;
+}
+
+
+.admin-logout {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 11px;
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+    text-align: left;
+}
+
+
+.admin-logout:hover {
+    background: rgba(239,68,68,.12);
+    color: #fca5a5;
+}
+
+
+/* =========================================================
+   MAIN
+========================================================= */
+
+.admin-main {
+    flex: 1;
+    min-width: 0;
+    padding: 34px 42px 60px;
+}
+
+
+/* =========================================================
+   TOP BAR
+========================================================= */
+
+.admin-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+
+.admin-eyebrow {
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+
+.admin-title {
+    margin-top: 6px;
+    color: #0b1020;
+    font-size: 31px;
+    font-weight: 800;
+    letter-spacing: -.045em;
+}
+
+
+.admin-subtitle {
+    margin-top: 7px;
+    color: #64748b;
+    font-size: 13px;
+}
+
+
+.admin-profile {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+
+.admin-avatar {
+    width: 43px;
+    height: 43px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #7c3aed
+        );
+    color: white;
+    font-weight: 800;
+}
+
+
+.admin-profile-name {
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+
+.admin-profile-role {
+    margin-top: 2px;
+    color: #94a3b8;
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   FLASH
+========================================================= */
+
+.admin-flashes {
+    margin-bottom: 22px;
+}
+
+
+.admin-alert {
+    padding: 12px 15px;
+    margin-bottom: 8px;
+    border-radius: 11px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    color: #334155;
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   STATS
+========================================================= */
+
+.admin-stats {
+    display: grid;
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+
+.admin-stat {
+    background: white;
+    border: 1px solid #e8edf4;
+    border-radius: 17px;
+    padding: 20px;
+    box-shadow:
+        0 8px 30px rgba(15,23,42,.04);
+}
+
+
+.admin-stat-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+
+.admin-stat-label {
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .07em;
+}
+
+
+.admin-stat-icon {
+    width: 35px;
+    height: 35px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eff6ff;
+}
+
+
+.admin-stat-number {
+    margin-top: 12px;
+    color: #0b1020;
+    font-size: 28px;
+    font-weight: 800;
+}
+
+
+/* =========================================================
+   PANELS
+========================================================= */
+
+.admin-panel {
+    background: white;
+    border: 1px solid #e8edf4;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow:
+        0 8px 30px rgba(15,23,42,.04);
+    margin-bottom: 24px;
+}
+
+
+.admin-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 20px;
+    border-bottom: 1px solid #eef2f7;
+}
+
+
+.admin-panel-title {
+    color: #0f172a;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+
+.admin-panel-subtitle {
+    margin-top: 3px;
+    color: #94a3b8;
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+.admin-search {
+    width: 230px;
+    height: 38px;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    padding: 0 12px;
+    outline: none;
+    font-size: 11px;
+    background: #f8fafc;
+}
+
+
+.admin-search:focus {
+    background: white;
+    border-color: #93c5fd;
+    box-shadow:
+        0 0 0 3px rgba(37,99,235,.07);
+}
+
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+.admin-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 700px;
+}
+
+
+.admin-table th {
+    padding: 12px 20px;
+    text-align: left;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+
+.admin-table td {
+    padding: 14px 20px;
+    border-top: 1px solid #f1f5f9;
+    color: #334155;
+    font-size: 12px;
+}
+
+
+.admin-table tr:hover td {
+    background: #fafcff;
+}
+
+
+.admin-user-name {
+    color: #0f172a;
+    font-weight: 750;
+}
+
+
+.admin-user-email {
+    margin-top: 2px;
+    color: #94a3b8;
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   BADGES
+========================================================= */
+
+.admin-role {
+    display: inline-flex;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 800;
+}
+
+
+.admin-role-admin {
+    color: #6d28d9;
+    background: #f5f3ff;
+}
+
+
+.admin-role-user {
+    color: #2563eb;
+    background: #eff6ff;
+}
+
+
+.admin-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 800;
+}
+
+
+.admin-status-completed {
+    color: #047857;
+    background: #ecfdf5;
+}
+
+
+.admin-status-processing {
+    color: #b45309;
+    background: #fffbeb;
+}
+
+
+.admin-status-failed {
+    color: #b91c1c;
+    background: #fef2f2;
+}
+
+
+.admin-status-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+
+/* =========================================================
+   ACTIONS
+========================================================= */
+
+.admin-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #475569;
+    border-radius: 7px;
+    padding: 6px 9px;
+    font-size: 10px;
+    font-weight: 750;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+
+.admin-action:hover {
+    border-color: #93c5fd;
+    color: #2563eb;
+}
+
+
+.admin-delete-btn {
+    border: 1px solid #fecaca;
+    background: #fffafa;
+    color: #dc2626;
+    border-radius: 7px;
+    padding: 6px 9px;
+    font-size: 10px;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+
+.admin-delete-btn:hover {
+    background: #fef2f2;
+}
+
+
+.admin-protected {
+    color: #94a3b8;
+    font-size: 10px;
+}
+
+
+/* =========================================================
+   EMPTY
+========================================================= */
+
+.admin-empty {
+    padding: 35px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 1100px) {
+
+    .admin-stats {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+
+@media (max-width: 850px) {
+
+    .admin-sidebar {
+        width: 72px;
+        padding: 20px 10px;
+    }
+
+    .admin-brand {
+        justify-content: center;
+        padding-bottom: 25px;
+    }
+
+    .admin-brand-name,
+    .admin-section-title,
+    .admin-link span:not(.admin-link-icon) {
+        display: none;
+    }
+
+    .admin-link {
+        justify-content: center;
+    }
+
+    .admin-logout {
+        justify-content: center;
+    }
+
+    .admin-logout span:not(.admin-link-icon) {
+        display: none;
+    }
+
+    .admin-main {
+        padding: 25px 20px 50px;
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .admin-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-topbar {
+        align-items: flex-start;
+    }
+
+    .admin-title {
+        font-size: 25px;
+    }
+
+    .admin-profile {
+        display: none;
+    }
+
+    .admin-panel-header {
+        align-items: flex-start;
+        gap: 12px;
+        flex-direction: column;
+    }
+
+    .admin-search {
+        width: 100%;
+    }
+
+}
+
+</style>
+
+
+<div class="admin-shell">
+
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+    <aside class="admin-sidebar">
+
+
+        <div class="admin-brand">
+
+            <img
+                src="{{ url_for(
+                    'static',
+                    filename='images/doc-ai-logo.png'
+                ) }}"
+                alt="DOC AI"
+            >
+
+            <div class="admin-brand-name">
+                DOC <span>AI</span>
+            </div>
+
+        </div>
+
+
+        <div class="admin-section-title">
+            Administration
+        </div>
+
+
+        <a
+            href="{{ url_for('dashboard') }}"
+            class="admin-link active"
+        >
+
+            <span class="admin-link-icon">
+                ◈
+            </span>
+
+            <span>
+                Overview
+            </span>
+
         </a>
-        {% else %}
-        —
-        {% endif %}
-    </td>
-</tr>
-{% endfor %}
-</table>
 
-<hr>
 
-<h3>📄 All Documents</h3>
+        <a
+            href="#users"
+            class="admin-link"
+        >
 
-<table border="1" cellpadding="8" width="100%">
-<tr>
-    <th>ID</th>
-    <th>Filename</th>
-    <th>User ID</th>
-    <th>Status</th>
-    <th>Action</th>
-</tr>
+            <span class="admin-link-icon">
+                👥
+            </span>
 
-{% for doc in documents %}
-<tr>
-    <td>{{ doc.id }}</td>
-    <td>{{ doc.filename }}</td>
-    <td>{{ doc.user_id }}</td>
-    <td>{{ doc.status }}</td>
-    <td>
-        <a href="{{ url_for('delete_document_admin', doc_id=doc.id) }}"
-           onclick="return confirm('Delete this document?')">
-           ❌ Delete
+            <span>
+                Users
+            </span>
+
         </a>
-    </td>
-</tr>
-{% endfor %}
-</table>
 
-<br><br>
-<a href="{{ url_for('dashboard') }}">⬅ Back to Dashboard</a>
+
+        <a
+            href="#documents"
+            class="admin-link"
+        >
+
+            <span class="admin-link-icon">
+                📄
+            </span>
+
+            <span>
+                Documents
+            </span>
+
+        </a>
+
+
+        <div class="admin-sidebar-bottom">
+
+            <form
+                method="POST"
+                action="{{ url_for('auth.logout') }}"
+                class="admin-logout-form"
+            >
+
+                <button
+                    type="submit"
+                    class="admin-logout"
+                >
+
+                    <span class="admin-link-icon">
+                        ↪
+                    </span>
+
+                    <span>
+                        Logout
+                    </span>
+
+                </button>
+
+            </form>
+
+        </div>
+
+
+    </aside>
+
+
+    <!-- =====================================================
+         MAIN CONTENT
+    ====================================================== -->
+
+    <main class="admin-main">
+
+
+        <!-- TOP BAR -->
+
+        <div class="admin-topbar">
+
+            <div>
+
+                <div class="admin-eyebrow">
+                    DOC AI ADMINISTRATION
+                </div>
+
+                <h1 class="admin-title">
+                    Admin Dashboard
+                </h1>
+
+                <p class="admin-subtitle">
+                    Monitor users, documents and OCR activity.
+                </p>
+
+            </div>
+
+
+            <div class="admin-profile">
+
+                <div class="admin-avatar">
+
+                    {{ current_user.name[0]|upper }}
+
+                </div>
+
+                <div>
+
+                    <div class="admin-profile-name">
+                        {{ current_user.name }}
+                    </div>
+
+                    <div class="admin-profile-role">
+                        Administrator
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- FLASH MESSAGES -->
+
+        {% with messages =
+            get_flashed_messages(
+                with_categories=true
+            )
+        %}
+
+            {% if messages %}
+
+            <div class="admin-flashes">
+
+                {% for category, message in messages %}
+
+                    <div class="admin-alert">
+                        {{ message }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+            {% endif %}
+
+        {% endwith %}
+
+
+        <!-- =================================================
+             STATISTICS
+        ================================================== -->
+
+        <section class="admin-stats">
+
+
+            <div class="admin-stat">
+
+                <div class="admin-stat-top">
+
+                    <div class="admin-stat-label">
+                        TOTAL USERS
+                    </div>
+
+                    <div class="admin-stat-icon">
+                        👥
+                    </div>
+
+                </div>
+
+                <div class="admin-stat-number">
+                    {{ total_users }}
+                </div>
+
+            </div>
+
+
+            <div class="admin-stat">
+
+                <div class="admin-stat-top">
+
+                    <div class="admin-stat-label">
+                        TOTAL DOCUMENTS
+                    </div>
+
+                    <div class="admin-stat-icon">
+                        📄
+                    </div>
+
+                </div>
+
+                <div class="admin-stat-number">
+                    {{ total_docs }}
+                </div>
+
+            </div>
+
+
+            <div class="admin-stat">
+
+                <div class="admin-stat-top">
+
+                    <div class="admin-stat-label">
+                        COMPLETED OCR
+                    </div>
+
+                    <div class="admin-stat-icon">
+                        ✓
+                    </div>
+
+                </div>
+
+                <div class="admin-stat-number">
+                    {{ total_completed }}
+                </div>
+
+            </div>
+
+
+            <div class="admin-stat">
+
+                <div class="admin-stat-top">
+
+                    <div class="admin-stat-label">
+                        FAILED OCR
+                    </div>
+
+                    <div class="admin-stat-icon">
+                        !
+                    </div>
+
+                </div>
+
+                <div class="admin-stat-number">
+                    {{ total_failed }}
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+        <!-- =================================================
+             USERS
+        ================================================== -->
+
+        <section
+            id="users"
+            class="admin-panel"
+        >
+
+
+            <div class="admin-panel-header">
+
+                <div>
+
+                    <div class="admin-panel-title">
+                        👥 Users
+                    </div>
+
+                    <div class="admin-panel-subtitle">
+                        Manage registered DOC AI accounts.
+                    </div>
+
+                </div>
+
+
+                <input
+                    type="text"
+                    id="userSearch"
+                    class="admin-search"
+                    placeholder="Search users..."
+                    onkeyup="searchUsers()"
+                >
+
+            </div>
+
+
+            {% if users %}
+
+            <div class="admin-table-wrapper">
+
+                <table
+                    class="admin-table"
+                    id="usersTable"
+                >
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                User
+                            </th>
+
+                            <th>
+                                ID
+                            </th>
+
+                            <th>
+                                Role
+                            </th>
+
+                            <th>
+                                Action
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                    {% for user in users %}
+
+                    <tr>
+
+
+                        <td>
+
+                            <div class="admin-user-name">
+                                {{ user.name }}
+                            </div>
+
+                            <div class="admin-user-email">
+                                {{ user.email }}
+                            </div>
+
+                        </td>
+
+
+                        <td>
+                            #{{ user.id }}
+                        </td>
+
+
+                        <td>
+
+                            {% if user.role == "admin" %}
+
+                                <span
+                                    class="admin-role admin-role-admin"
+                                >
+                                    ADMIN
+                                </span>
+
+                            {% else %}
+
+                                <span
+                                    class="admin-role admin-role-user"
+                                >
+                                    USER
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td>
+
+                            {% if user.role != "admin"
+                                  and user.id != current_user.id %}
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'delete_user',
+                                        user_id=user.id
+                                    ) }}"
+                                    style="display:inline;"
+                                    onsubmit="
+                                        return confirm(
+                                            'Delete this user and all their documents?'
+                                        )
+                                    "
+                                >
+
+                                    <button
+                                        type="submit"
+                                        class="admin-delete-btn"
+                                    >
+                                        Delete
+                                    </button>
+
+                                </form>
+
+                            {% else %}
+
+                                <span class="admin-protected">
+                                    Protected
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                    </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            {% else %}
+
+                <div class="admin-empty">
+                    No users found.
+                </div>
+
+            {% endif %}
+
+
+        </section>
+
+
+        <!-- =================================================
+             DOCUMENTS
+        ================================================== -->
+
+        <section
+            id="documents"
+            class="admin-panel"
+        >
+
+
+            <div class="admin-panel-header">
+
+                <div>
+
+                    <div class="admin-panel-title">
+                        📄 Documents
+                    </div>
+
+                    <div class="admin-panel-subtitle">
+                        Monitor documents processed by DOC AI.
+                    </div>
+
+                </div>
+
+
+                <input
+                    type="text"
+                    id="documentSearch"
+                    class="admin-search"
+                    placeholder="Search documents..."
+                    onkeyup="searchDocuments()"
+                >
+
+            </div>
+
+
+            {% if documents %}
+
+            <div class="admin-table-wrapper">
+
+                <table
+                    class="admin-table"
+                    id="documentsTable"
+                >
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Document
+                            </th>
+
+                            <th>
+                                ID
+                            </th>
+
+                            <th>
+                                User ID
+                            </th>
+
+                            <th>
+                                Status
+                            </th>
+
+                            <th>
+                                Action
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                    {% for doc in documents %}
+
+                    <tr>
+
+
+                        <td>
+
+                            <div
+                                class="admin-user-name"
+                                title="{{ doc.filename }}"
+                            >
+
+                                {{ doc.filename }}
+
+                            </div>
+
+                        </td>
+
+
+                        <td>
+                            #{{ doc.id }}
+                        </td>
+
+
+                        <td>
+                            #{{ doc.user_id }}
+                        </td>
+
+
+                        <td>
+
+                            {% if doc.status == "completed" %}
+
+                                <span
+                                    class="admin-status admin-status-completed"
+                                >
+
+                                    <span
+                                        class="admin-status-dot"
+                                    ></span>
+
+                                    Completed
+
+                                </span>
+
+                            {% elif doc.status == "processing" %}
+
+                                <span
+                                    class="admin-status admin-status-processing"
+                                >
+
+                                    <span
+                                        class="admin-status-dot"
+                                    ></span>
+
+                                    Processing
+
+                                </span>
+
+                            {% elif doc.status == "failed" %}
+
+                                <span
+                                    class="admin-status admin-status-failed"
+                                >
+
+                                    <span
+                                        class="admin-status-dot"
+                                    ></span>
+
+                                    Failed
+
+                                </span>
+
+                            {% else %}
+
+                                <span class="admin-status">
+                                    {{ doc.status }}
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+
+                        <td>
+
+                            <a
+                                href="{{ url_for(
+                                    'view_document',
+                                    doc_id=doc.id
+                                ) }}"
+                                class="admin-action"
+                            >
+                                Open
+                            </a>
+
+
+                            <form
+                                method="POST"
+                                action="{{ url_for(
+                                    'delete_document_admin',
+                                    doc_id=doc.id
+                                ) }}"
+                                style="display:inline;"
+                                onsubmit="
+                                    return confirm(
+                                        'Delete this document permanently?'
+                                    )
+                                "
+                            >
+
+                                <button
+                                    type="submit"
+                                    class="admin-delete-btn"
+                                >
+                                    Delete
+                                </button>
+
+                            </form>
+
+                        </td>
+
+
+                    </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            {% else %}
+
+                <div class="admin-empty">
+                    No documents found.
+                </div>
+
+            {% endif %}
+
+
+        </section>
+
+
+    </main>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   SEARCH USERS
+========================================================= */
+
+function searchUsers() {
+
+    const query =
+        document
+            .getElementById("userSearch")
+            .value
+            .toLowerCase()
+            .trim();
+
+    const rows =
+        document.querySelectorAll(
+            "#usersTable tbody tr"
+        );
+
+    rows.forEach(
+        row => {
+
+            const text =
+                row.textContent.toLowerCase();
+
+            row.style.display =
+                text.includes(query)
+                    ? ""
+                    : "none";
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   SEARCH DOCUMENTS
+========================================================= */
+
+function searchDocuments() {
+
+    const query =
+        document
+            .getElementById("documentSearch")
+            .value
+            .toLowerCase()
+            .trim();
+
+    const rows =
+        document.querySelectorAll(
+            "#documentsTable tbody tr"
+        );
+
+    rows.forEach(
+        row => {
+
+            const text =
+                row.textContent.toLowerCase();
+
+            row.style.display =
+                text.includes(query)
+                    ? ""
+                    : "none";
+
+        }
+    );
+
+}
+
+</script>
 
 {% endblock %}

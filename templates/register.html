@@ -4,7 +4,9 @@
 
 <div class="auth-page">
 
-    <!-- Background decoration -->
+    <!-- =====================================================
+         BACKGROUND DECORATION
+    ====================================================== -->
 
     <div class="auth-orb auth-orb-one"></div>
 
@@ -24,28 +26,29 @@
 
                 <span class="auth-brand-badge-dot"></span>
 
-                WELCOME TO DOC AI
+                SECURE DOCUMENT INTELLIGENCE
 
             </div>
 
 
             <h1>
 
-                Turn documents
+                Create your
 
                 <br>
 
-                into <span>intelligence.</span>
+                <span>DOC AI</span>
+
+                account.
 
             </h1>
 
 
             <p class="auth-brand-description">
 
-                Upload handwritten notes, forms and
-                documents. DOC AI reads them, extracts
-                the information and lets you ask questions
-                about what was found.
+                Turn handwritten documents into
+                searchable, editable and intelligent
+                digital information.
 
             </p>
 
@@ -53,19 +56,19 @@
             <div class="auth-features">
 
                 <div class="auth-feature">
-                    ✦ OCR
+                    ✦ AI OCR
                 </div>
 
                 <div class="auth-feature">
-                    ✦ AI Extraction
+                    🔐 Secure
                 </div>
 
                 <div class="auth-feature">
-                    ✦ Document Q&A
+                    💬 Ask your documents
                 </div>
 
                 <div class="auth-feature">
-                    ✦ Secure Workspace
+                    📄 Export
                 </div>
 
             </div>
@@ -80,6 +83,8 @@
         <section class="auth-card">
 
 
+            <!-- DOC AI LOGO -->
+
             <img
                 src="{{ url_for(
                     'static',
@@ -90,26 +95,40 @@
             >
 
 
+            <!-- TITLE -->
+
             <h2>
-                Create your account
+                Create account
             </h2>
 
 
+            <!-- SUBTITLE -->
+
             <p class="auth-subtitle">
 
-                Start turning your documents into
-                useful information.
+                First, verify your email address.
+
+                <br>
+
+                We'll send you a secure
+                verification code.
 
             </p>
 
 
-            <!-- Flash messages -->
+            <!-- =================================================
+                 FLASH MESSAGES
+            ================================================== -->
 
-            {% with messages = get_flashed_messages() %}
+            {% with messages =
+                get_flashed_messages(
+                    with_categories=true
+                )
+            %}
 
                 {% if messages %}
 
-                    {% for message in messages %}
+                    {% for category, message in messages %}
 
                         <div class="auth-alert">
 
@@ -124,7 +143,9 @@
             {% endwith %}
 
 
-            <!-- Register form -->
+            <!-- =================================================
+                 REGISTRATION FORM — STEP 1
+            ================================================== -->
 
             <form
                 method="POST"
@@ -132,30 +153,16 @@
             >
 
 
-                <div class="auth-field">
-
-                    <label for="name">
-                        Full name
-                    </label>
-
-                    <input
-                        id="name"
-                        name="name"
-                        type="text"
-                        class="auth-input"
-                        placeholder="Your name"
-                        autocomplete="name"
-                        required
-                    >
-
-                </div>
-
+                <!-- EMAIL -->
 
                 <div class="auth-field">
 
                     <label for="email">
+
                         Email address
+
                     </label>
+
 
                     <input
                         id="email"
@@ -164,37 +171,69 @@
                         class="auth-input"
                         placeholder="you@example.com"
                         autocomplete="email"
+                        maxlength="120"
                         required
                     >
 
                 </div>
 
 
-                <div class="auth-field">
+                <!-- =================================================
+                     SECURITY INFORMATION
+                ================================================== -->
 
-                    <label for="password">
-                        Password
-                    </label>
+                <div class="verification-info">
 
-                    <input
-                        id="password"
-                        name="password"
-                        type="password"
-                        class="auth-input"
-                        placeholder="Create a password"
-                        autocomplete="new-password"
-                        required
-                    >
+                    <div class="verification-icon">
+
+                        🔐
+
+                    </div>
+
+
+                    <div class="verification-text">
+
+                        <strong>
+                            Verify your email
+                        </strong>
+
+                        <span>
+
+                            We'll send a 6-digit
+                            verification code to
+                            this email address.
+
+                        </span>
+
+                    </div>
 
                 </div>
 
+
+                <!-- =================================================
+                     SEND OTP BUTTON
+                ================================================== -->
 
                 <button
                     type="submit"
                     class="auth-button"
+                    id="sendOtpButton"
                 >
 
-                    Create DOC AI Account →
+                    <span id="sendOtpText">
+
+                        Send verification code →
+
+                    </span>
+
+                    <span
+                        id="sendOtpLoading"
+                        style="display:none;"
+                    >
+
+                        Sending code...
+
+                    </span>
 
                 </button>
 
@@ -202,12 +241,20 @@
             </form>
 
 
+            <!-- =================================================
+                 LOGIN LINK
+            ================================================== -->
+
             <div class="auth-switch">
 
                 Already have an account?
 
-                <a href="{{ url_for('auth.login') }}">
+                <a
+                    href="{{ url_for('auth.login') }}"
+                >
+
                     Sign in
+
                 </a>
 
             </div>
@@ -218,5 +265,273 @@
     </div>
 
 </div>
+
+
+<!-- =========================================================
+     REGISTER PAGE STYLES
+========================================================= -->
+
+<style>
+
+    /* =====================================================
+       EMAIL VERIFICATION INFO
+    ===================================================== */
+
+    .verification-info {
+
+        display: flex;
+
+        align-items: flex-start;
+
+        gap: 12px;
+
+        padding: 13px 14px;
+
+        border-radius: 12px;
+
+        background: #eff6ff;
+
+        border: 1px solid #dbeafe;
+
+        margin-top: -3px;
+
+    }
+
+
+    .verification-icon {
+
+        width: 34px;
+
+        height: 34px;
+
+        flex-shrink: 0;
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        border-radius: 9px;
+
+        background: white;
+
+        font-size: 16px;
+
+        box-shadow:
+
+            0 3px 10px
+            rgba(37,99,235,.08);
+
+    }
+
+
+    .verification-text {
+
+        display: flex;
+
+        flex-direction: column;
+
+        gap: 3px;
+
+        line-height: 1.4;
+
+    }
+
+
+    .verification-text strong {
+
+        color: #1e40af;
+
+        font-size: 12px;
+
+        font-weight: 800;
+
+    }
+
+
+    .verification-text span {
+
+        color: #64748b;
+
+        font-size: 11px;
+
+        line-height: 1.5;
+
+    }
+
+
+    /* =====================================================
+       OTP BUTTON LOADING
+    ===================================================== */
+
+    #sendOtpButton {
+
+        position: relative;
+
+    }
+
+
+    #sendOtpButton.loading {
+
+        opacity: .75;
+
+        cursor: wait;
+
+        pointer-events: none;
+
+    }
+
+
+    /* =====================================================
+       SUCCESS FLASH
+    ===================================================== */
+
+    .auth-alert {
+
+        animation:
+
+            registerAlertIn
+            .35s
+            ease;
+
+    }
+
+
+    @keyframes registerAlertIn {
+
+        from {
+
+            opacity: 0;
+
+            transform:
+                translateY(-5px);
+
+        }
+
+        to {
+
+            opacity: 1;
+
+            transform:
+                translateY(0);
+
+        }
+
+    }
+
+
+    /* =====================================================
+       MOBILE
+    ===================================================== */
+
+    @media (max-width: 500px) {
+
+        .verification-info {
+
+            padding: 12px;
+
+        }
+
+        .verification-text span {
+
+            font-size: 10px;
+
+        }
+
+    }
+
+</style>
+
+
+<!-- =========================================================
+     REGISTER JAVASCRIPT
+========================================================= -->
+
+<script>
+
+    const registerForm =
+        document.querySelector(
+            ".auth-form"
+        );
+
+
+    const sendOtpButton =
+        document.getElementById(
+            "sendOtpButton"
+        );
+
+
+    const sendOtpText =
+        document.getElementById(
+            "sendOtpText"
+        );
+
+
+    const sendOtpLoading =
+        document.getElementById(
+            "sendOtpLoading"
+        );
+
+
+    if (registerForm) {
+
+        registerForm.addEventListener(
+            "submit",
+            function () {
+
+                /*
+                 * Prevent the user from accidentally
+                 * clicking the button multiple times
+                 * while the OTP email is being sent.
+                 */
+
+                if (sendOtpButton) {
+
+                    sendOtpButton.classList.add(
+                        "loading"
+                    );
+
+                    sendOtpText.style.display =
+                        "none";
+
+                    sendOtpLoading.style.display =
+                        "inline";
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       EMAIL INPUT — CLEAN SPACES
+    ===================================================== */
+
+    const emailInput =
+        document.getElementById(
+            "email"
+        );
+
+
+    if (emailInput) {
+
+        emailInput.addEventListener(
+            "input",
+            function () {
+
+                this.value =
+                    this.value
+                        .replace(/\s/g, "")
+                        .toLowerCase();
+
+            }
+        );
+
+    }
+
+</script>
 
 {% endblock %}

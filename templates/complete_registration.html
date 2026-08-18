@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="auth-page">
+
+    <div class="auth-orb auth-orb-one"></div>
+    <div class="auth-orb auth-orb-two"></div>
+
+    <div class="auth-container">
+
+        <!-- BRAND -->
+
+        <section class="auth-brand">
+
+            <div class="auth-brand-badge">
+
+                <span class="auth-brand-badge-dot"></span>
+
+                EMAIL VERIFIED ✓
+
+            </div>
+
+            <h1>
+                Welcome to
+                <span>DOC AI.</span>
+            </h1>
+
+            <p class="auth-brand-description">
+
+                Your email has been successfully verified.
+                Finish creating your account and start
+                turning documents into intelligence.
+
+            </p>
+
+        </section>
+
+
+        <!-- ACCOUNT CARD -->
+
+        <section class="auth-card">
+
+            <img
+                src="{{ url_for(
+                    'static',
+                    filename='images/doc-ai-logo.png'
+                ) }}"
+                alt="DOC AI"
+                class="auth-logo"
+            >
+
+            <h2>
+                Finish your account
+            </h2>
+
+            <p class="auth-subtitle">
+
+                Your email is verified ✓
+
+                <br>
+
+                <strong>
+                    {{ email }}
+                </strong>
+
+            </p>
+
+
+            {% with messages =
+                get_flashed_messages(
+                    with_categories=true
+                )
+            %}
+
+                {% if messages %}
+
+                    {% for category, message in messages %}
+
+                        <div class="auth-alert">
+
+                            {{ message }}
+
+                        </div>
+
+                    {% endfor %}
+
+                {% endif %}
+
+            {% endwith %}
+
+
+            <form
+                method="POST"
+                class="auth-form"
+            >
+
+                <!-- NAME -->
+
+                <div class="auth-field">
+
+                    <label for="name">
+                        Your name
+                    </label>
+
+                    <input
+                        id="name"
+                        name="name"
+                        type="text"
+                        class="auth-input"
+                        placeholder="Enter your name"
+                        autocomplete="name"
+                        maxlength="100"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- PASSWORD -->
+
+                <div class="auth-field">
+
+                    <label for="password">
+                        Create password
+                    </label>
+
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        class="auth-input"
+                        placeholder="Minimum 8 characters"
+                        autocomplete="new-password"
+                        minlength="8"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- CONFIRM -->
+
+                <div class="auth-field">
+
+                    <label for="confirm_password">
+                        Confirm password
+                    </label>
+
+                    <input
+                        id="confirm_password"
+                        name="confirm_password"
+                        type="password"
+                        class="auth-input"
+                        placeholder="Enter password again"
+                        autocomplete="new-password"
+                        minlength="8"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="auth-button"
+                >
+
+                    Create my DOC AI account 🎉
+
+                </button>
+
+            </form>
+
+
+            <div class="auth-switch">
+
+                Already have an account?
+
+                <a href="{{ url_for('auth.login') }}">
+                    Login
+                </a>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</div>
+
+{% endblock %}

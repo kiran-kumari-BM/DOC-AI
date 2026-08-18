@@ -45,7 +45,7 @@ from models import (
     ChatHistory
 )
 
-from auth import auth
+from auth import auth,mail
 from ocr_pipeline import run_ocr
 from rag_engine import ask_question
 
@@ -57,6 +57,7 @@ from rag_engine import ask_question
 app = Flask(__name__)
 
 app.config.from_object(Config)
+mail.init_app(app)
 
 
 # ============================================================
@@ -297,6 +298,126 @@ def dashboard():
 
     )
 
+
+# ============================================================
+# ADMIN — DELETE USER
+# ============================================================
+
+@app.route("/admin/user/<int:user_id>/delete", methods=["POST"])
+@login_required
+def delete_user(user_id):
+
+    # Only administrators can delete users
+    if current_user.role != "admin":
+        flash(
+            "❌ Access denied. Administrator privileges required.",
+            "danger"
+        )
+        return redirect(url_for("dashboard"))
+
+    user = User.query.get_or_404(user_id)
+
+    # Prevent admin from deleting themselves
+    if user.id == current_user.id:
+        flash(
+            "⚠ You cannot delete your own administrator account.",
+            "warning"
+        )
+        return redirect(url_for("dashboard"))
+
+    # Prevent deleting another administrator
+    if user.role == "admin":
+        flash(
+            "⚠ Administrator accounts cannot be deleted.",
+            "warning"
+        )
+        return redirect(url_for("dashboard"))
+
+    # Delete documents belonging to the user
+    documents = Document.query.filter_by(
+        user_id=user.id
+    ).all()
+
+    for doc in documents:
+
+        if doc.stored_path:
+
+            try:
+
+                if os.path.exists(doc.stored_path):
+                    os.remove(doc.stored_path)
+
+            except Exception:
+
+                logging.exception(
+                    f"Could not delete file for document {doc.id}"
+                )
+
+        db.session.delete(doc)
+
+    # Delete user
+    db.session.delete(user)
+
+    db.session.commit()
+
+    flash(
+        f"✅ User {user.email} deleted successfully.",
+        "success"
+    )
+
+    return redirect(
+        url_for("dashboard")
+    )
+
+
+# ============================================================
+# ADMIN — DELETE DOCUMENT
+# ============================================================
+
+@app.route(
+    "/admin/document/<int:doc_id>/delete",
+    methods=["POST"]
+)
+@login_required
+def delete_document_admin(doc_id):
+
+    # Only administrators can delete documents
+    if current_user.role != "admin":
+        flash(
+            "❌ Access denied. Administrator privileges required.",
+            "danger"
+        )
+        return redirect(url_for("dashboard"))
+
+    doc = Document.query.get_or_404(doc_id)
+
+    # Delete physical file
+    if doc.stored_path:
+
+        try:
+
+            if os.path.exists(doc.stored_path):
+                os.remove(doc.stored_path)
+
+        except Exception:
+
+            logging.exception(
+                f"Could not delete stored file for document {doc.id}"
+            )
+
+    # Delete database record
+    db.session.delete(doc)
+
+    db.session.commit()
+
+    flash(
+        "✅ Document deleted successfully.",
+        "success"
+    )
+
+    return redirect(
+        url_for("dashboard")
+    )
 
 # ============================================================
 # UPLOAD DOCUMENTS

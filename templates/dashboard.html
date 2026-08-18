@@ -9,9 +9,17 @@
 ========================================================= */
 
 .dashboard-shell {
+
     min-height: 100vh;
+
     display: flex;
+
     background: #f6f8fc;
+
+    transition:
+        background .25s ease,
+        color .25s ease;
+
 }
 
 
@@ -20,135 +28,318 @@
 ========================================================= */
 
 .dashboard-sidebar {
+
     width: 245px;
+
     min-height: 100vh;
+
     background: #0b1020;
+
     color: white;
+
     padding: 26px 16px;
+
     position: sticky;
+
     top: 0;
+
     align-self: flex-start;
+
     display: flex;
+
     flex-direction: column;
+
+    transition:
+        width .25s ease;
+
 }
 
 
+/* =========================================================
+   BRAND
+========================================================= */
+
 .sidebar-brand {
+
     display: flex;
+
     align-items: center;
+
     gap: 10px;
+
     padding: 4px 10px 30px;
+
 }
 
 
 .sidebar-brand img {
+
     width: 42px;
+
     height: 42px;
+
     object-fit: contain;
+
     border-radius: 10px;
+
 }
 
 
 .sidebar-brand-text {
+
     font-size: 20px;
+
     font-weight: 800;
-    letter-spacing: -0.04em;
+
+    letter-spacing: -.04em;
+
 }
 
 
 .sidebar-brand-text span {
+
     color: #60a5fa;
+
 }
 
+
+/* =========================================================
+   SIDEBAR SECTION
+========================================================= */
 
 .sidebar-section-title {
+
     font-size: 10px;
+
     font-weight: 800;
+
     letter-spacing: .12em;
+
     text-transform: uppercase;
+
     color: #64748b;
+
     padding: 0 12px;
+
     margin: 12px 0 8px;
+
 }
 
 
+/* =========================================================
+   SIDEBAR LINK
+========================================================= */
+
 .sidebar-link {
+
     display: flex;
+
     align-items: center;
+
     gap: 12px;
+
     padding: 12px;
+
     margin: 3px 0;
+
     border-radius: 11px;
+
     color: #94a3b8;
+
     font-size: 14px;
+
     font-weight: 600;
+
+    text-decoration: none;
+
     transition: .2s ease;
+
 }
 
 
 .sidebar-link:hover {
+
     background: rgba(255,255,255,.06);
+
     color: white;
+
 }
 
 
 .sidebar-link.active {
-    background: linear-gradient(
-        135deg,
-        rgba(37,99,235,.35),
-        rgba(79,70,229,.25)
-    );
+
+    background:
+
+        linear-gradient(
+            135deg,
+            rgba(37,99,235,.35),
+            rgba(79,70,229,.25)
+        );
+
     color: white;
+
 }
 
+
+/* =========================================================
+   SIDEBAR ICON
+========================================================= */
 
 .sidebar-icon {
+
     width: 20px;
+
+    min-width: 20px;
+
     text-align: center;
+
     font-size: 16px;
+
 }
 
+
+/* =========================================================
+   SIDEBAR BOTTOM
+========================================================= */
 
 .sidebar-bottom {
+
     margin-top: auto;
-    padding-top: 25px;
-    border-top: 1px solid rgba(255,255,255,.08);
+
+    padding-top: 20px;
+
+    border-top:
+        1px solid
+        rgba(255,255,255,.08);
+
 }
 
 
+/* =========================================================
+   USER
+========================================================= */
+
 .sidebar-user {
+
     display: flex;
+
     align-items: center;
+
     gap: 10px;
+
     padding: 10px;
+
 }
 
 
 .sidebar-avatar {
+
     width: 36px;
+
     height: 36px;
+
+    min-width: 36px;
+
     border-radius: 50%;
-    background: linear-gradient(
-        135deg,
-        #2563eb,
-        #7c3aed
-    );
+
+    background:
+
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #7c3aed
+        );
+
     display: flex;
+
     align-items: center;
+
     justify-content: center;
+
     font-weight: 800;
+
+    color: white;
+
 }
 
 
 .sidebar-user-name {
+
     font-size: 13px;
+
     font-weight: 700;
+
+    color: white;
+
 }
 
 
 .sidebar-user-role {
+
     color: #64748b;
+
     font-size: 11px;
+
+    margin-top: 2px;
+
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+.logout-form {
+
+    width: 100%;
+
+    margin: 3px 0;
+
+}
+
+
+.sidebar-logout {
+
+    width: 100%;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 12px;
+
+    border: 0;
+
+    border-radius: 11px;
+
+    background: transparent;
+
+    color: #94a3b8;
+
+    font-family: inherit;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    text-align: left;
+
+    transition: .2s ease;
+
+}
+
+
+.sidebar-logout:hover {
+
+    background:
+        rgba(239,68,68,.10);
+
+    color: #f87171;
+
 }
 
 
@@ -157,9 +348,16 @@
 ========================================================= */
 
 .dashboard-main {
+
     flex: 1;
+
     min-width: 0;
+
     padding: 34px 42px 60px;
+
+    transition:
+        padding .25s ease;
+
 }
 
 
@@ -168,60 +366,106 @@
 ========================================================= */
 
 .dashboard-topbar {
+
     display: flex;
+
     justify-content: space-between;
+
     align-items: center;
+
     margin-bottom: 35px;
+
 }
 
 
 .dashboard-eyebrow {
+
     color: #64748b;
+
     font-size: 12px;
+
     font-weight: 700;
+
     letter-spacing: .08em;
+
     text-transform: uppercase;
+
     margin-bottom: 7px;
+
 }
 
 
 .dashboard-title {
+
     color: #0b1020;
+
     font-size: 32px;
+
     line-height: 1.1;
+
     letter-spacing: -.045em;
+
     font-weight: 800;
+
 }
 
 
 .dashboard-subtitle {
+
     margin-top: 8px;
+
     color: #64748b;
+
     font-size: 14px;
+
 }
 
 
+/* =========================================================
+   TOP RIGHT USER
+========================================================= */
+
 .dashboard-user {
+
     display: flex;
+
     align-items: center;
+
     gap: 12px;
+
 }
 
 
 .dashboard-user-avatar {
+
     width: 43px;
+
     height: 43px;
+
     border-radius: 50%;
-    background: linear-gradient(
-        135deg,
-        #2563eb,
-        #7c3aed
-    );
+
+    background:
+
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #7c3aed
+        );
+
     color: white;
+
     display: flex;
+
     align-items: center;
+
     justify-content: center;
+
     font-weight: 800;
+
+    box-shadow:
+        0 8px 20px
+        rgba(37,99,235,.20);
+
 }
 
 
@@ -230,76 +474,137 @@
 ========================================================= */
 
 .stats-grid {
+
     display: grid;
+
     grid-template-columns:
         repeat(3, minmax(0, 1fr));
+
     gap: 18px;
+
     margin-bottom: 28px;
+
 }
 
 
 .stat-card {
+
     background: white;
-    border: 1px solid #e8edf4;
+
+    border:
+        1px solid
+        #e8edf4;
+
     border-radius: 17px;
+
     padding: 21px;
+
     box-shadow:
-        0 8px 30px rgba(15,23,42,.045);
+        0 8px 30px
+        rgba(15,23,42,.045);
+
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease,
+        background .25s ease,
+        border-color .25s ease;
+
+}
+
+
+.stat-card:hover {
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 12px 35px
+        rgba(15,23,42,.07);
+
 }
 
 
 .stat-top {
+
     display: flex;
+
     justify-content: space-between;
+
     align-items: center;
+
 }
 
 
 .stat-label {
+
     color: #64748b;
+
     font-size: 12px;
+
     font-weight: 700;
+
 }
 
 
 .stat-icon {
+
     width: 35px;
+
     height: 35px;
+
     border-radius: 10px;
+
     display: flex;
+
     align-items: center;
+
     justify-content: center;
+
     background: #eff6ff;
+
 }
 
 
 .stat-number {
+
     margin-top: 13px;
+
     color: #0b1020;
+
     font-size: 29px;
+
     font-weight: 800;
+
     letter-spacing: -.04em;
+
 }
 
 
 /* =========================================================
-   UPLOAD AREA
+   UPLOAD CARD
 ========================================================= */
 
 .upload-card {
+
     position: relative;
+
     overflow: hidden;
+
     border-radius: 22px;
+
     padding: 30px;
+
     margin-bottom: 35px;
+
     color: white;
 
     background:
+
         radial-gradient(
             circle at 85% 20%,
             rgba(96,165,250,.22),
             transparent 25%
         ),
+
         linear-gradient(
             135deg,
             #0b1020,
@@ -308,115 +613,248 @@
         );
 
     box-shadow:
-        0 20px 50px rgba(15,23,42,.14);
+        0 20px 50px
+        rgba(15,23,42,.14);
+
 }
 
 
 .upload-card::after {
+
     content: "";
+
     position: absolute;
+
     width: 230px;
+
     height: 230px;
+
     border-radius: 50%;
+
     right: -80px;
+
     bottom: -130px;
-    background: rgba(124,58,237,.25);
+
+    background:
+        rgba(124,58,237,.25);
+
     filter: blur(20px);
+
 }
 
 
 .upload-content {
+
     position: relative;
+
     z-index: 2;
+
 }
 
 
 .upload-eyebrow {
+
     color: #93c5fd;
+
     font-size: 11px;
+
     font-weight: 800;
+
     letter-spacing: .12em;
+
     text-transform: uppercase;
+
 }
 
 
 .upload-title {
+
     font-size: 24px;
+
     font-weight: 800;
+
     letter-spacing: -.035em;
+
     margin-top: 7px;
+
 }
 
 
 .upload-description {
+
     color: #cbd5e1;
+
     font-size: 13px;
+
     margin-top: 7px;
+
+    line-height: 1.6;
+
 }
 
 
+/* =========================================================
+   UPLOAD FORM
+========================================================= */
+
 .upload-form {
+
     margin-top: 22px;
+
 }
 
 
 .upload-dropzone {
+
     display: flex;
+
     align-items: center;
+
     justify-content: space-between;
+
     gap: 20px;
+
     padding: 18px;
+
     border-radius: 15px;
-    border: 1px dashed rgba(147,197,253,.4);
-    background: rgba(255,255,255,.055);
+
+    border:
+        1px dashed
+        rgba(147,197,253,.4);
+
+    background:
+        rgba(255,255,255,.055);
+
+    transition:
+        background .2s ease,
+        border-color .2s ease;
+
+}
+
+
+.upload-dropzone:hover {
+
+    background:
+        rgba(255,255,255,.08);
+
+    border-color:
+        rgba(147,197,253,.65);
+
 }
 
 
 .upload-file {
+
     color: #cbd5e1;
+
     font-size: 13px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    min-width: 0;
+
 }
 
 
 .upload-file input {
+
     display: none;
+
 }
 
 
 .upload-file-label {
+
     display: inline-flex;
+
     align-items: center;
+
+    justify-content: center;
+
     gap: 9px;
+
     cursor: pointer;
+
     padding: 11px 15px;
+
     border-radius: 10px;
-    background: rgba(255,255,255,.1);
+
+    background:
+        rgba(255,255,255,.1);
+
     color: white;
+
     font-weight: 700;
+
+    white-space: nowrap;
+
     transition: .2s ease;
+
 }
 
 
 .upload-file-label:hover {
-    background: rgba(255,255,255,.17);
+
+    background:
+        rgba(255,255,255,.17);
+
+    transform: translateY(-1px);
+
 }
 
 
+#file-count {
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+
+    max-width: 300px;
+
+}
+
+
+/* =========================================================
+   UPLOAD BUTTON
+========================================================= */
+
 .upload-submit {
+
     border: 0;
+
     padding: 12px 19px;
+
     border-radius: 10px;
+
     background: white;
+
     color: #172554;
+
     font-weight: 800;
+
     cursor: pointer;
+
     transition: .2s ease;
+
+    white-space: nowrap;
+
 }
 
 
 .upload-submit:hover {
+
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,.18);
+
+    box-shadow:
+        0 8px 25px
+        rgba(0,0,0,.18);
+
 }
 
 
@@ -425,44 +863,81 @@
 ========================================================= */
 
 .documents-header {
+
     display: flex;
+
     justify-content: space-between;
+
     align-items: center;
+
     gap: 15px;
+
     margin-bottom: 17px;
+
 }
 
 
 .documents-title {
+
     color: #0b1020;
+
     font-size: 19px;
+
     font-weight: 800;
+
     letter-spacing: -.025em;
+
 }
 
 
 .documents-actions {
+
     display: flex;
+
     gap: 9px;
+
+    align-items: center;
+
 }
 
 
+/* =========================================================
+   DASHBOARD BUTTON
+========================================================= */
+
 .dashboard-btn {
-    border: 1px solid #dbe2ea;
+
+    border:
+        1px solid
+        #dbe2ea;
+
     background: white;
+
     color: #475569;
+
     border-radius: 9px;
+
     padding: 9px 13px;
+
     font-size: 12px;
+
     font-weight: 700;
+
     cursor: pointer;
+
     transition: .2s ease;
+
 }
 
 
 .dashboard-btn:hover {
+
     border-color: #93c5fd;
+
     color: #2563eb;
+
+    transform: translateY(-1px);
+
 }
 
 
@@ -471,36 +946,73 @@
 ========================================================= */
 
 .search-box {
+
     position: relative;
+
     margin-bottom: 18px;
+
 }
 
 
 .search-box input {
+
     width: 100%;
+
     height: 46px;
-    border: 1px solid #e2e8f0;
+
+    border:
+        1px solid
+        #e2e8f0;
+
     border-radius: 11px;
-    padding: 0 15px 0 42px;
+
+    padding:
+        0 15px 0 42px;
+
     outline: none;
+
     background: white;
+
     color: #0f172a;
+
+    font-size: 13px;
+
+    transition: .2s ease;
+
+}
+
+
+.search-box input::placeholder {
+
+    color: #94a3b8;
+
 }
 
 
 .search-box input:focus {
+
     border-color: #93c5fd;
+
     box-shadow:
-        0 0 0 4px rgba(37,99,235,.07);
+        0 0 0 4px
+        rgba(37,99,235,.07);
+
 }
 
 
 .search-icon {
+
     position: absolute;
+
     left: 15px;
+
     top: 50%;
-    transform: translateY(-50%);
+
+    transform:
+        translateY(-50%);
+
     color: #94a3b8;
+
 }
 
 
@@ -509,149 +1021,266 @@
 ========================================================= */
 
 .document-grid {
+
     display: grid;
+
     grid-template-columns:
         repeat(3, minmax(0, 1fr));
+
     gap: 17px;
+
 }
 
 
 .document-card {
+
     background: white;
-    border: 1px solid #e8edf4;
+
+    border:
+        1px solid
+        #e8edf4;
+
     border-radius: 17px;
+
     padding: 19px;
+
     box-shadow:
-        0 8px 30px rgba(15,23,42,.04);
+        0 8px 30px
+        rgba(15,23,42,.04);
+
     transition:
         transform .2s ease,
         box-shadow .2s ease,
-        border-color .2s ease;
+        border-color .2s ease,
+        background .25s ease;
+
 }
 
 
 .document-card:hover {
+
     transform: translateY(-3px);
+
     border-color: #cbd5e1;
+
     box-shadow:
-        0 15px 35px rgba(15,23,42,.08);
+        0 15px 35px
+        rgba(15,23,42,.08);
+
 }
 
 
 .document-top {
+
     display: flex;
+
     align-items: flex-start;
+
     justify-content: space-between;
+
     gap: 10px;
+
 }
 
 
 .document-icon {
+
     width: 43px;
+
     height: 43px;
+
     border-radius: 11px;
+
     display: flex;
+
     align-items: center;
+
     justify-content: center;
+
     background: #eff6ff;
+
     font-size: 19px;
+
 }
 
 
 .document-check {
+
     accent-color: #2563eb;
+
     width: 16px;
+
     height: 16px;
+
+    cursor: pointer;
+
 }
 
 
 .document-name {
+
     margin-top: 15px;
+
     font-size: 14px;
+
     font-weight: 800;
+
     color: #0f172a;
+
     white-space: nowrap;
+
     overflow: hidden;
+
     text-overflow: ellipsis;
+
 }
 
 
 .document-meta {
+
     margin-top: 5px;
+
     color: #94a3b8;
+
     font-size: 11px;
+
 }
 
 
+/* =========================================================
+   STATUS
+========================================================= */
+
 .document-status {
+
     display: inline-flex;
+
     align-items: center;
+
     gap: 6px;
+
     margin-top: 13px;
+
     padding: 6px 9px;
+
     border-radius: 999px;
+
     font-size: 10px;
+
     font-weight: 800;
+
 }
 
 
 .status-processing {
+
     background: #fffbeb;
+
     color: #b45309;
+
 }
 
 
 .status-completed {
+
     background: #ecfdf5;
+
     color: #047857;
+
 }
 
 
 .status-failed {
+
     background: #fef2f2;
+
     color: #b91c1c;
+
 }
 
 
 .status-dot {
+
     width: 6px;
+
     height: 6px;
+
     border-radius: 50%;
+
     background: currentColor;
+
 }
 
 
+/* =========================================================
+   DOCUMENT ACTIONS
+========================================================= */
+
 .document-actions {
+
     display: flex;
+
     flex-wrap: wrap;
+
     gap: 7px;
+
     margin-top: 17px;
+
     padding-top: 14px;
-    border-top: 1px solid #f1f5f9;
+
+    border-top:
+        1px solid
+        #f1f5f9;
+
 }
 
 
 .document-btn {
-    border: 1px solid #e2e8f0;
+
+    border:
+        1px solid
+        #e2e8f0;
+
     background: white;
+
     color: #475569;
+
     border-radius: 8px;
+
     padding: 7px 9px;
+
     font-size: 11px;
+
     font-weight: 750;
+
+    text-decoration: none;
+
     transition: .2s ease;
+
+    cursor: pointer;
+
 }
 
 
 .document-btn:hover {
+
     border-color: #93c5fd;
+
     color: #2563eb;
+
+    transform: translateY(-1px);
+
 }
 
 
 .document-btn-danger:hover {
+
     border-color: #fecaca;
+
     color: #dc2626;
+
+    background: #fffafa;
+
 }
 
 
@@ -660,50 +1289,258 @@
 ========================================================= */
 
 .empty-state {
+
     background: white;
-    border: 1px dashed #cbd5e1;
+
+    border:
+        1px dashed
+        #cbd5e1;
+
     border-radius: 18px;
+
     padding: 55px 25px;
+
     text-align: center;
+
 }
 
 
 .empty-icon {
+
     width: 58px;
+
     height: 58px;
+
     margin: auto;
+
     border-radius: 16px;
+
     display: flex;
+
     align-items: center;
+
     justify-content: center;
+
     background: #eff6ff;
+
     font-size: 25px;
+
 }
 
 
 .empty-title {
+
     margin-top: 16px;
+
     font-weight: 800;
+
     color: #0f172a;
+
 }
 
 
 .empty-description {
+
     margin-top: 6px;
+
     color: #64748b;
+
     font-size: 13px;
+
 }
 
 
 /* =========================================================
-   MOBILE
+   DARK MODE
+========================================================= */
+
+body.doc-ai-dark .dashboard-shell {
+
+    background: #080d1b;
+
+}
+
+
+body.doc-ai-dark .dashboard-title,
+
+body.doc-ai-dark .documents-title,
+
+body.doc-ai-dark .stat-number,
+
+body.doc-ai-dark .document-name,
+
+body.doc-ai-dark .empty-title {
+
+    color: #f8fafc;
+
+}
+
+
+body.doc-ai-dark .dashboard-subtitle,
+
+body.doc-ai-dark .dashboard-eyebrow,
+
+body.doc-ai-dark .stat-label {
+
+    color: #94a3b8;
+
+}
+
+
+body.doc-ai-dark .stat-card,
+
+body.doc-ai-dark .document-card,
+
+body.doc-ai-dark .empty-state {
+
+    background: #111827;
+
+    border-color: #1e293b;
+
+}
+
+
+body.doc-ai-dark .stat-card:hover,
+
+body.doc-ai-dark .document-card:hover {
+
+    border-color: #334155;
+
+}
+
+
+body.doc-ai-dark .search-box input {
+
+    background: #111827;
+
+    color: white;
+
+    border-color: #334155;
+
+}
+
+
+body.doc-ai-dark .search-box input::placeholder {
+
+    color: #64748b;
+
+}
+
+
+body.doc-ai-dark .dashboard-btn {
+
+    background: #111827;
+
+    color: #cbd5e1;
+
+    border-color: #334155;
+
+}
+
+
+body.doc-ai-dark .document-meta {
+
+    color: #64748b;
+
+}
+
+
+body.doc-ai-dark .document-actions {
+
+    border-color: #1e293b;
+
+}
+
+
+body.doc-ai-dark .document-btn {
+
+    background: #111827;
+
+    color: #cbd5e1;
+
+    border-color: #334155;
+
+}
+
+
+body.doc-ai-dark .document-btn:hover {
+
+    border-color: #60a5fa;
+
+    color: #60a5fa;
+
+}
+
+
+body.doc-ai-dark .empty-description {
+
+    color: #94a3b8;
+
+}
+
+
+/* =========================================================
+   COMPACT MODE
+========================================================= */
+
+body.doc-ai-compact .dashboard-main {
+
+    padding-top: 24px;
+
+}
+
+
+body.doc-ai-compact .stat-card {
+
+    padding: 16px;
+
+}
+
+
+body.doc-ai-compact .document-card {
+
+    padding: 15px;
+
+}
+
+
+body.doc-ai-compact .upload-card {
+
+    padding: 24px;
+
+}
+
+
+/* =========================================================
+   DISABLE ANIMATIONS
+========================================================= */
+
+body.doc-ai-no-animations *,
+body.doc-ai-no-animations *::before,
+body.doc-ai-no-animations *::after {
+
+    animation-duration: 0s !important;
+
+    animation-iteration-count: 1 !important;
+
+    transition-duration: 0s !important;
+
+    scroll-behavior: auto !important;
+
+}
+
+
+/* =========================================================
+   RESPONSIVE
 ========================================================= */
 
 @media (max-width: 1100px) {
 
     .document-grid {
+
         grid-template-columns:
             repeat(2, minmax(0, 1fr));
+
     }
 
 }
@@ -712,33 +1549,66 @@
 @media (max-width: 850px) {
 
     .dashboard-sidebar {
+
         width: 72px;
+
         padding: 20px 10px;
+
     }
+
 
     .sidebar-brand-text,
+
     .sidebar-section-title,
+
     .sidebar-link span:not(.sidebar-icon),
+
     .sidebar-user-name,
-    .sidebar-user-role {
+
+    .sidebar-user-role,
+
+    .sidebar-logout span:not(.sidebar-icon) {
+
         display: none;
+
     }
+
 
     .sidebar-brand {
+
         justify-content: center;
+
         padding-bottom: 25px;
+
     }
+
 
     .sidebar-link {
+
         justify-content: center;
+
     }
+
+
+    .sidebar-logout {
+
+        justify-content: center;
+
+    }
+
 
     .sidebar-user {
+
         justify-content: center;
+
     }
 
+
     .dashboard-main {
-        padding: 25px 20px 50px;
+
+        padding:
+            25px 20px 50px;
+
     }
 
 }
@@ -747,34 +1617,104 @@
 @media (max-width: 650px) {
 
     .stats-grid {
+
         grid-template-columns: 1fr;
+
     }
+
 
     .document-grid {
+
         grid-template-columns: 1fr;
+
     }
+
 
     .dashboard-topbar {
+
         align-items: flex-start;
+
     }
+
 
     .dashboard-title {
+
         font-size: 26px;
+
     }
+
+
+    .dashboard-user-avatar {
+
+        width: 38px;
+
+        height: 38px;
+
+    }
+
 
     .upload-dropzone {
+
         flex-direction: column;
+
         align-items: stretch;
+
     }
 
+
+    .upload-file {
+
+        flex-direction: column;
+
+        align-items: stretch;
+
+    }
+
+
+    #file-count {
+
+        max-width: 100%;
+
+    }
+
+
     .upload-submit {
+
         width: 100%;
+
+    }
+
+
+    .documents-header {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+
+    }
+
+
+    .documents-actions {
+
+        width: 100%;
+
+    }
+
+
+    .documents-actions .dashboard-btn {
+
+        flex: 1;
+
     }
 
 }
 
 </style>
 
+
+<!-- =========================================================
+     DASHBOARD SHELL
+========================================================= -->
 
 <div class="dashboard-shell">
 
@@ -784,6 +1724,9 @@
     ====================================================== -->
 
     <aside class="dashboard-sidebar">
+
+
+        <!-- BRAND -->
 
         <div class="sidebar-brand">
 
@@ -796,59 +1739,106 @@
             >
 
             <div class="sidebar-brand-text">
+
                 DOC <span>AI</span>
+
             </div>
 
         </div>
 
+
+        <!-- WORKSPACE -->
 
         <div class="sidebar-section-title">
             Workspace
         </div>
 
 
+        <!-- DASHBOARD -->
+
         <a
             href="{{ url_for('dashboard') }}"
             class="sidebar-link active"
         >
-            <span class="sidebar-icon">⌂</span>
-            <span>Dashboard</span>
+
+            <span class="sidebar-icon">
+                ⌂
+            </span>
+
+            <span>
+                Dashboard
+            </span>
+
         </a>
 
+
+        <!-- DOCUMENTS -->
 
         <a
             href="#documents"
             class="sidebar-link"
         >
-            <span class="sidebar-icon">▣</span>
-            <span>Documents</span>
+
+            <span class="sidebar-icon">
+                ▣
+            </span>
+
+            <span>
+                Documents
+            </span>
+
         </a>
 
+
+        <!-- AI WORKSPACE -->
 
         <a
             href="#upload"
             class="sidebar-link"
         >
-            <span class="sidebar-icon">✦</span>
-            <span>AI Workspace</span>
+
+            <span class="sidebar-icon">
+                ✦
+            </span>
+
+            <span>
+                AI Workspace
+            </span>
+
         </a>
 
+
+        <!-- ACCOUNT -->
 
         <div class="sidebar-section-title">
             Account
         </div>
 
 
+        <!-- SETTINGS -->
+
         <a
-            href="#"
+            href="{{ url_for('auth.settings') }}"
             class="sidebar-link"
         >
-            <span class="sidebar-icon">⚙</span>
-            <span>Settings</span>
+
+            <span class="sidebar-icon">
+                ⚙
+            </span>
+
+            <span>
+                Settings
+            </span>
+
         </a>
 
 
+        <!-- SIDEBAR BOTTOM -->
+
         <div class="sidebar-bottom">
+
+
+            <!-- USER -->
 
             <div class="sidebar-user">
 
@@ -858,27 +1848,66 @@
 
                 </div>
 
+
                 <div>
 
                     <div class="sidebar-user-name">
+
                         {{ user.name }}
+
                     </div>
 
+
                     <div class="sidebar-user-role">
+
                         DOC AI User
+
                     </div>
 
                 </div>
 
             </div>
 
+
+            <!-- LOGOUT -->
+
+            <form
+                method="POST"
+                action="{{ url_for('auth.logout') }}"
+                class="logout-form"
+            >
+
+                <button
+                    type="submit"
+                    class="sidebar-logout"
+                    onclick="
+                        return confirm(
+                            'Are you sure you want to logout?'
+                        )
+                    "
+                >
+
+                    <span class="sidebar-icon">
+                        ⇥
+                    </span>
+
+                    <span>
+                        Logout
+                    </span>
+
+                </button>
+
+            </form>
+
+
         </div>
+
 
     </aside>
 
 
     <!-- =====================================================
-         MAIN CONTENT
+         MAIN
     ====================================================== -->
 
     <main class="dashboard-main">
@@ -890,30 +1919,46 @@
 
         <div class="dashboard-topbar">
 
+
             <div>
 
                 <div class="dashboard-eyebrow">
+
                     DOCUMENT INTELLIGENCE
+
                 </div>
 
+
                 <h1 class="dashboard-title">
-                    Good to see you, {{ user.name }} 👋
+
+                    Good to see you,
+                    {{ user.name }} 👋
+
                 </h1>
 
+
                 <p class="dashboard-subtitle">
-                    Manage, understand and interact with your documents.
+
+                    Manage, understand and interact with
+                    your documents.
+
                 </p>
 
             </div>
 
 
+            <!-- USER AVATAR -->
+
             <div class="dashboard-user">
 
                 <div class="dashboard-user-avatar">
+
                     {{ user.name[0]|upper }}
+
                 </div>
 
             </div>
+
 
         </div>
 
@@ -924,77 +1969,117 @@
 
         <div class="stats-grid">
 
+
+            <!-- TOTAL -->
+
             <div class="stat-card">
 
                 <div class="stat-top">
 
                     <div class="stat-label">
+
                         TOTAL DOCUMENTS
+
                     </div>
 
+
                     <div class="stat-icon">
+
                         📄
+
                     </div>
 
                 </div>
 
+
                 <div class="stat-number">
+
                     {{ documents|length }}
+
                 </div>
 
             </div>
 
+
+            <!-- COMPLETED -->
 
             <div class="stat-card">
 
                 <div class="stat-top">
 
                     <div class="stat-label">
+
                         COMPLETED
+
                     </div>
 
+
                     <div class="stat-icon">
+
                         ✓
+
                     </div>
 
                 </div>
 
+
                 <div class="stat-number">
 
-                    {{ documents |
-                       selectattr("status", "equalto", "completed") |
-                       list |
-                       length }}
+                    {{
+                        documents
+                        | selectattr(
+                            "status",
+                            "equalto",
+                            "completed"
+                        )
+                        | list
+                        | length
+                    }}
 
                 </div>
 
             </div>
 
+
+            <!-- PROCESSING -->
 
             <div class="stat-card">
 
                 <div class="stat-top">
 
                     <div class="stat-label">
+
                         PROCESSING
+
                     </div>
 
+
                     <div class="stat-icon">
+
                         ◌
+
                     </div>
 
                 </div>
 
+
                 <div class="stat-number">
 
-                    {{ documents |
-                       selectattr("status", "equalto", "processing") |
-                       list |
-                       length }}
+                    {{
+                        documents
+                        | selectattr(
+                            "status",
+                            "equalto",
+                            "processing"
+                        )
+                        | list
+                        | length
+                    }}
 
                 </div>
 
             </div>
+
 
         </div>
 
@@ -1008,21 +2093,33 @@
             class="upload-card"
         >
 
+
             <div class="upload-content">
 
+
                 <div class="upload-eyebrow">
+
                     AI DOCUMENT PROCESSING
+
                 </div>
+
 
                 <div class="upload-title">
+
                     Turn a document into intelligence.
+
                 </div>
+
 
                 <div class="upload-description">
+
                     Upload handwritten notes, forms or documents
                     and let DOC AI extract the information.
+
                 </div>
 
+
+                <!-- UPLOAD FORM -->
 
                 <form
                     method="POST"
@@ -1031,10 +2128,14 @@
                     class="upload-form"
                 >
 
+
                     <div class="upload-dropzone">
 
 
+                        <!-- FILE INPUT -->
+
                         <div class="upload-file">
+
 
                             <label
                                 for="documents"
@@ -1044,6 +2145,7 @@
                                 ＋ Choose documents
 
                             </label>
+
 
                             <input
                                 id="documents"
@@ -1055,12 +2157,18 @@
                                 onchange="showSelectedFiles(this)"
                             >
 
+
                             <span id="file-count">
+
                                 No files selected
+
                             </span>
+
 
                         </div>
 
+
+                        <!-- SUBMIT -->
 
                         <button
                             type="submit"
@@ -1074,37 +2182,52 @@
 
                     </div>
 
+
                 </form>
 
+
             </div>
+
 
         </section>
 
 
         <!-- =================================================
-             DOCUMENTS
+             DOCUMENT SECTION
         ================================================== -->
 
         <section id="documents">
 
 
+            <!-- HEADER -->
+
             <div class="documents-header">
 
+
                 <div class="documents-title">
+
                     Your Documents
+
                 </div>
 
 
                 <div class="documents-actions">
+
+
+                    <!-- SELECT ALL -->
 
                     <button
                         type="button"
                         class="dashboard-btn"
                         onclick="toggleSelectAll()"
                     >
+
                         Select All
+
                     </button>
 
+
+                    <!-- DOWNLOAD ZIP -->
 
                     <form
                         method="POST"
@@ -1116,33 +2239,49 @@
                             type="submit"
                             class="dashboard-btn"
                         >
+
                             Download ZIP
+
                         </button>
 
                     </form>
 
+
                 </div>
+
 
             </div>
 
 
-            <!-- Search -->
+            <!-- =================================================
+                 SEARCH
+            ================================================== -->
 
             <div class="search-box">
 
+
                 <span class="search-icon">
+
                     ⌕
+
                 </span>
+
 
                 <input
                     type="text"
                     id="documentSearch"
                     placeholder="Search your documents..."
                     onkeyup="searchDocuments()"
+                    autocomplete="off"
                 >
+
 
             </div>
 
+
+            <!-- =================================================
+                 DOCUMENTS EXIST
+            ================================================== -->
 
             {% if documents %}
 
@@ -1153,10 +2292,12 @@
                 id="documentForm"
             >
 
+
                 <div class="document-grid">
 
 
                     {% for doc in documents %}
+
 
                     <div
                         class="document-card"
@@ -1164,15 +2305,20 @@
                     >
 
 
+                        <!-- TOP -->
+
                         <div class="document-top">
 
 
                             <div class="document-icon">
+
                                 📄
+
                             </div>
 
 
                             {% if doc.status == "completed" %}
+
 
                             <input
                                 type="checkbox"
@@ -1181,10 +2327,14 @@
                                 class="document-check doc-checkbox"
                             >
 
+
                             {% endif %}
+
 
                         </div>
 
+
+                        <!-- NAME -->
 
                         <div
                             class="document-name"
@@ -1196,6 +2346,8 @@
                         </div>
 
 
+                        <!-- ID -->
+
                         <div class="document-meta">
 
                             Document #{{ doc.id }}
@@ -1203,9 +2355,17 @@
                         </div>
 
 
+                        <!-- PROCESSING -->
+
                         {% if doc.status == "processing" %}
 
-                        <div class="document-status status-processing">
+
+                        <div
+                            class="
+                                document-status
+                                status-processing
+                            "
+                        >
 
                             <span class="status-dot"></span>
 
@@ -1213,9 +2373,18 @@
 
                         </div>
 
+
+                        <!-- COMPLETED -->
+
                         {% elif doc.status == "completed" %}
 
-                        <div class="document-status status-completed">
+
+                        <div
+                            class="
+                                document-status
+                                status-completed
+                            "
+                        >
 
                             <span class="status-dot"></span>
 
@@ -1223,9 +2392,18 @@
 
                         </div>
 
+
+                        <!-- FAILED -->
+
                         {% elif doc.status == "failed" %}
 
-                        <div class="document-status status-failed">
+
+                        <div
+                            class="
+                                document-status
+                                status-failed
+                            "
+                        >
 
                             <span class="status-dot"></span>
 
@@ -1233,11 +2411,16 @@
 
                         </div>
 
+
                         {% endif %}
 
 
+                        <!-- ACTIONS -->
+
                         <div class="document-actions">
 
+
+                            <!-- OPEN -->
 
                             <a
                                 href="{{ url_for(
@@ -1246,11 +2429,16 @@
                                 ) }}"
                                 class="document-btn"
                             >
+
                                 Open
+
                             </a>
 
 
+                            <!-- PDF -->
+
                             {% if doc.status == "completed" %}
+
 
                             <a
                                 href="{{ url_for(
@@ -1259,9 +2447,13 @@
                                 ) }}"
                                 class="document-btn"
                             >
+
                                 PDF
+
                             </a>
 
+
+                            <!-- WORD -->
 
                             <a
                                 href="{{ url_for(
@@ -1270,25 +2462,35 @@
                                 ) }}"
                                 class="document-btn"
                             >
+
                                 Word
+
                             </a>
+
 
                             {% endif %}
 
+
+                            <!-- DELETE -->
 
                             <a
                                 href="{{ url_for(
                                     'delete_document_user',
                                     doc_id=doc.id
                                 ) }}"
-                                class="document-btn document-btn-danger"
+                                class="
+                                    document-btn
+                                    document-btn-danger
+                                "
                                 onclick="
                                     return confirm(
                                         'Delete this document?'
                                     )
                                 "
                             >
+
                                 Delete
+
                             </a>
 
 
@@ -1297,31 +2499,47 @@
 
                     </div>
 
+
                     {% endfor %}
 
 
                 </div>
 
+
             </form>
 
+
+            <!-- =================================================
+                 EMPTY
+            ================================================== -->
 
             {% else %}
 
 
             <div class="empty-state">
 
+
                 <div class="empty-icon">
+
                     ✦
+
                 </div>
+
 
                 <div class="empty-title">
+
                     No documents yet
+
                 </div>
 
+
                 <div class="empty-description">
+
                     Upload your first document and let DOC AI
                     turn it into searchable intelligence.
+
                 </div>
+
 
             </div>
 
@@ -1333,6 +2551,7 @@
 
 
     </main>
+
 
 </div>
 
@@ -1347,8 +2566,9 @@ function toggleSelectAll() {
 
     const checkboxes =
         document.querySelectorAll(
-            '.doc-checkbox'
+            ".doc-checkbox"
         );
+
 
     if (checkboxes.length === 0) {
 
@@ -1360,11 +2580,13 @@ function toggleSelectAll() {
 
     }
 
+
     const allChecked =
-        Array.from(checkboxes)
-            .every(
-                checkbox => checkbox.checked
-            );
+        Array.from(checkboxes).every(
+            checkbox =>
+                checkbox.checked
+        );
+
 
     checkboxes.forEach(
         checkbox => {
@@ -1389,6 +2611,14 @@ function showSelectedFiles(input) {
             "file-count"
         );
 
+
+    if (!counter) {
+
+        return;
+
+    }
+
+
     if (!input.files.length) {
 
         counter.textContent =
@@ -1398,12 +2628,15 @@ function showSelectedFiles(input) {
 
     }
 
+
     if (input.files.length === 1) {
 
         counter.textContent =
             input.files[0].name;
 
-    } else {
+    }
+
+    else {
 
         counter.textContent =
             input.files.length +
@@ -1420,10 +2653,21 @@ function showSelectedFiles(input) {
 
 function searchDocuments() {
 
+    const searchInput =
+        document.getElementById(
+            "documentSearch"
+        );
+
+
+    if (!searchInput) {
+
+        return;
+
+    }
+
+
     const query =
-        document
-            .getElementById("documentSearch")
-            .value
+        searchInput.value
             .toLowerCase()
             .trim();
 
@@ -1438,7 +2682,9 @@ function searchDocuments() {
         card => {
 
             const name =
-                card.dataset.documentName;
+                card.dataset.documentName ||
+                "";
+
 
             if (
                 name.includes(query)
@@ -1447,7 +2693,9 @@ function searchDocuments() {
                 card.style.display =
                     "";
 
-            } else {
+            }
+
+            else {
 
                 card.style.display =
                     "none";
@@ -1458,6 +2706,153 @@ function searchDocuments() {
     );
 
 }
+
+
+/* =========================================================
+   LOAD USER PREFERENCES
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+
+        /* =============================================
+           THEME
+        ============================================= */
+
+        const theme =
+            localStorage.getItem(
+                "docai-theme"
+            ) || "light";
+
+
+        if (theme === "dark") {
+
+            document.body.classList.add(
+                "doc-ai-dark"
+            );
+
+        }
+
+        else {
+
+            document.body.classList.remove(
+                "doc-ai-dark"
+            );
+
+        }
+
+
+        /* =============================================
+           COMPACT MODE
+        ============================================= */
+
+        const compact =
+            localStorage.getItem(
+                "docai-compact"
+            ) === "true";
+
+
+        if (compact) {
+
+            document.body.classList.add(
+                "doc-ai-compact"
+            );
+
+        }
+
+        else {
+
+            document.body.classList.remove(
+                "doc-ai-compact"
+            );
+
+        }
+
+
+        /* =============================================
+           ANIMATIONS
+        ============================================= */
+
+        const animations =
+            localStorage.getItem(
+                "docai-animations"
+            );
+
+
+        if (animations === "false") {
+
+            document.body.classList.add(
+                "doc-ai-no-animations"
+            );
+
+        }
+
+        else {
+
+            document.body.classList.remove(
+                "doc-ai-no-animations"
+            );
+
+        }
+
+
+    }
+);
+
+
+/* =========================================================
+   SMOOTH SIDEBAR NAVIGATION
+========================================================= */
+
+document.querySelectorAll(
+    '.sidebar-link[href^="#"]'
+).forEach(
+    link => {
+
+        link.addEventListener(
+            "click",
+            function (event) {
+
+                const targetId =
+                    this.getAttribute(
+                        "href"
+                    );
+
+
+                if (
+                    targetId === "#" ||
+                    !targetId
+                ) {
+
+                    return;
+
+                }
+
+
+                const target =
+                    document.querySelector(
+                        targetId
+                    );
+
+
+                if (target) {
+
+                    event.preventDefault();
+
+                    target.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start"
+                    });
+
+                }
+
+            }
+        );
+
+    }
+);
 
 </script>
 

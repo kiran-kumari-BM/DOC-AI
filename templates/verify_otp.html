@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="auth-page">
+
+    <div class="auth-orb auth-orb-one"></div>
+    <div class="auth-orb auth-orb-two"></div>
+
+    <div class="auth-container">
+
+        <!-- BRAND -->
+
+        <section class="auth-brand">
+
+            <div class="auth-brand-badge">
+
+                <span class="auth-brand-badge-dot"></span>
+
+                EMAIL VERIFICATION
+
+            </div>
+
+            <h1>
+                One step
+                <span>away.</span>
+            </h1>
+
+            <p class="auth-brand-description">
+
+                We've sent a verification code to your
+                email address. Enter it to continue
+                creating your DOC AI account.
+
+            </p>
+
+        </section>
+
+
+        <!-- OTP CARD -->
+
+        <section class="auth-card">
+
+            <img
+                src="{{ url_for(
+                    'static',
+                    filename='images/doc-ai-logo.png'
+                ) }}"
+                alt="DOC AI"
+                class="auth-logo"
+            >
+
+            <h2>
+                Verify your email
+            </h2>
+
+            <p class="auth-subtitle">
+
+                We sent a 6-digit verification code to
+
+                <strong>
+                    {{ email }}
+                </strong>
+
+            </p>
+
+
+            <!-- FLASH -->
+
+            {% with messages =
+                get_flashed_messages(
+                    with_categories=true
+                )
+            %}
+
+                {% if messages %}
+
+                    {% for category, message in messages %}
+
+                        <div class="auth-alert">
+
+                            {{ message }}
+
+                        </div>
+
+                    {% endfor %}
+
+                {% endif %}
+
+            {% endwith %}
+
+
+            <form
+                method="POST"
+                class="auth-form"
+            >
+
+                <div class="auth-field">
+
+                    <label for="otp">
+                        Verification code
+                    </label>
+
+                    <input
+                        id="otp"
+                        name="otp"
+                        type="text"
+                        class="auth-input"
+                        placeholder="Enter 6-digit code"
+                        inputmode="numeric"
+                        maxlength="6"
+                        autocomplete="one-time-code"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="auth-button"
+                >
+
+                    Verify email →
+
+                </button>
+
+            </form>
+
+
+            <!-- RESEND -->
+
+            <form
+                method="POST"
+                action="{{ url_for(
+                    'auth.resend_otp'
+                ) }}"
+                style="margin-top:12px;"
+            >
+
+                <button
+                    type="submit"
+                    class="auth-button"
+                    style="
+                        background:white;
+                        color:#2563eb;
+                        border:1px solid #dbeafe;
+                        box-shadow:none;
+                    "
+                >
+
+                    Resend code
+
+                </button>
+
+            </form>
+
+
+            <div class="auth-switch">
+
+                Wrong email?
+
+                <a href="{{ url_for('auth.register') }}">
+                    Start again
+                </a>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const otpInput =
+    document.getElementById("otp");
+
+if (otpInput) {
+
+    otpInput.addEventListener(
+        "input",
+        function () {
+
+            this.value =
+                this.value
+                    .replace(/\D/g, "")
+                    .slice(0, 6);
+
+        }
+    );
+
+}
+
+</script>
+
+{% endblock %}
