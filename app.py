@@ -56,6 +56,20 @@ from rag_engine import ask_question
 # ============================================================
 
 app = Flask(__name__)
+@app.errorhandler(Exception)
+def handle_exception(e):
+    import traceback
+
+    print("=" * 70, flush=True)
+    print("DOC AI UNHANDLED EXCEPTION", flush=True)
+    print(f"ERROR: {e}", flush=True)
+    traceback.print_exc()
+    print("=" * 70, flush=True)
+
+    return (
+        "Internal Server Error. Check server logs.",
+        500
+    )
 
 app.config.from_object(Config)
 
