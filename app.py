@@ -58,39 +58,26 @@ from rag_engine import ask_question
 app = Flask(__name__)
 @app.route("/health")
 def health():
+
     try:
-        from models import db
 
-        db.session.execute(db.text("SELECT 1"))
+        from models import User, Document
 
-        database_url = app.config.get(
-            "SQLALCHEMY_DATABASE_URI",
-            ""
-        )
-
-        if database_url.startswith("postgresql"):
-            database_type = "PostgreSQL"
-        elif database_url.startswith("sqlite"):
-            database_type = "SQLite"
-        elif database_url.startswith("mysql"):
-            database_type = "MySQL"
-        else:
-            database_type = "Unknown"
+        user_count = User.query.count()
+        document_count = Document.query.count()
 
         return {
             "status": "ok",
-            "database": database_type,
-            "database_connection": "ok"
+            "database": "SQLite",
+            "users": user_count,
+            "documents": document_count
         }
 
     except Exception as e:
 
-        import traceback
-        traceback.print_exc()
-
         return {
             "status": "error",
-            "database_connection": "failed",
+            "error_type": type(e).__name__,
             "error": str(e)
         }, 500
     
