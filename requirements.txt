@@ -90,3 +90,4 @@ Werkzeug==3.1.5
 gunicorn
 python-dotenv
 Flask-Mail
+celery==5.6.3
