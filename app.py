@@ -46,7 +46,7 @@ from models import (
     ChatHistory
 )
 
-from auth import auth, mail
+from auth import auth
 
 from rag_engine import ask_question
 
@@ -102,7 +102,7 @@ def handle_exception(e):
 
 app.config.from_object(Config)
 
-mail.init_app(app)
+# mail.init_app(app)
 
 
 # ============================================================
