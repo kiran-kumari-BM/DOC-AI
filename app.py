@@ -5,7 +5,7 @@ import uuid
 
 from io import BytesIO
 from functools import wraps
-
+import base64
 from flask import (
     Flask,
     render_template,
@@ -780,33 +780,88 @@ def upload():
         # ----------------------------------------------------
         # START OCR USING CELERY
         # ----------------------------------------------------
+        # ======================================
+# START OCR USING CELERY
+# ======================================
 
-        try:
+try:
 
-            from celery_tasks import process_ocr_task
+    from celery_tasks import process_ocr_task
 
-            process_ocr_task.delay(
+    # --------------------------------------------------
+    # Read uploaded file
+    # --------------------------------------------------
 
-                doc.id,
+    with open(
+        save_path,
+        "rb"
+    ) as uploaded_file:
 
-                save_path
+        file_bytes = uploaded_file.read()
 
-            )
+    # --------------------------------------------------
+    # Convert to Base64
+    # --------------------------------------------------
 
-        except Exception as e:
+    file_data_b64 = base64.b64encode(
+        file_bytes
+    ).decode("utf-8")
 
-            logging.exception(
-                f"Failed to start OCR "
-                f"for document {doc.id}"
-            )
+    # --------------------------------------------------
+    # Send file to Celery worker
+    # --------------------------------------------------
 
-            doc.status = "failed"
+    task = process_ocr_task.delay(
+        doc.id,
+        file_data_b64,
+        original_filename
+    )
 
-            doc.extracted_text = (
-                f"OCR task could not be started: {str(e)}"
-            )
+    logging.info(
+        f"✅ OCR task queued successfully. "
+        f"Document ID: {doc.id}, "
+        f"Celery Task ID: {task.id}"
+    )
 
-            db.session.commit()
+except Exception as e:
+
+    logging.exception(
+        f"❌ Failed to start OCR "
+        f"for document {doc.id}"
+    )
+
+    doc.status = "failed"
+
+    doc.extracted_text = (
+        f"OCR task could not be started: {str(e)}"
+    )
+
+    db.session.commit()
+
+        
+
+        
+
+        
+        
+        
+        
+        
+
+        
+
+        
+        
+        
+        
+
+        
+
+        
+        
+        
+
+        
 
 
     # ========================================================
