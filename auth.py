@@ -45,6 +45,24 @@ auth = Blueprint(
 
 
 # =========================================================
+# COMPATIBILITY
+# =========================================================
+#
+# Your existing app.py may contain:
+#
+#     from auth import auth, mail
+#
+# We no longer use Flask-Mail, but keeping this variable
+# prevents ImportError while you transition to Resend.
+#
+# DO NOT use mail.send().
+#
+# =========================================================
+
+mail = None
+
+
+# =========================================================
 # HELPER — HASH OTP
 # =========================================================
 
@@ -67,30 +85,90 @@ def generate_otp():
 
 
 # =========================================================
-# HELPER — SEND OTP EMAIL USING RESEND
+# HELPER — GET RESEND CONFIG
 # =========================================================
 
-def send_otp_email(
-    email,
-    otp,
-    purpose="Email Verification"
-):
-
-    # -----------------------------------------------------
-    # Get Resend configuration
-    # -----------------------------------------------------
+def get_resend_config():
 
     api_key = current_app.config.get(
         "RESEND_API_KEY"
     )
 
     mail_from = current_app.config.get(
-        "MAIL_FROM",
-        "onboarding@resend.dev"
+        "MAIL_FROM"
+    )
+
+    return api_key, mail_from
+
+
+# =========================================================
+# HELPER — SEND EMAIL USING RESEND
+# =========================================================
+
+def send_email(
+    recipient,
+    subject,
+    body
+):
+
+    api_key, mail_from = get_resend_config()
+
+    # -----------------------------------------------------
+    # DEBUG INFORMATION
+    # -----------------------------------------------------
+
+    print(
+        "=" * 70,
+        flush=True
+    )
+
+    print(
+        "DOC AI RESEND EMAIL",
+        flush=True
+    )
+
+    print(
+        f"RECIPIENT: {recipient}",
+        flush=True
+    )
+
+    print(
+        f"RESEND_API_KEY EXISTS: {bool(api_key)}",
+        flush=True
+    )
+
+    if api_key:
+
+        print(
+            f"RESEND_API_KEY PREFIX: "
+            f"{api_key[:5]}...",
+            flush=True
+        )
+
+    else:
+
+        print(
+            "RESEND_API_KEY PREFIX: NOT SET",
+            flush=True
+        )
+
+    print(
+        f"MAIL_FROM: {mail_from}",
+        flush=True
+    )
+
+    print(
+        f"SUBJECT: {subject}",
+        flush=True
+    )
+
+    print(
+        "=" * 70,
+        flush=True
     )
 
     # -----------------------------------------------------
-    # Check API key
+    # CHECK API KEY
     # -----------------------------------------------------
 
     if not api_key:
@@ -100,7 +178,7 @@ def send_otp_email(
         )
 
     # -----------------------------------------------------
-    # Check sender
+    # CHECK MAIL FROM
     # -----------------------------------------------------
 
     if not mail_from:
@@ -116,42 +194,98 @@ def send_otp_email(
     resend.api_key = api_key
 
     # -----------------------------------------------------
-    # Subject
+    # SEND
     # -----------------------------------------------------
 
-    subject = (
-        f"DOC AI — {purpose} Code"
-    )
+    try:
+
+        response = resend.Emails.send(
+            {
+                "from": mail_from,
+                "to": [recipient],
+                "subject": subject,
+                "text": body
+            }
+        )
+
+        print(
+            "=" * 70,
+            flush=True
+        )
+
+        print(
+            "DOC AI RESEND EMAIL SUCCESS",
+            flush=True
+        )
+
+        print(
+            f"RESEND RESPONSE: {response}",
+            flush=True
+        )
+
+        print(
+            "=" * 70,
+            flush=True
+        )
+
+        return response
+
+    except Exception as e:
+
+        print(
+            "=" * 70,
+            flush=True
+        )
+
+        print(
+            "DOC AI RESEND EMAIL FAILED",
+            flush=True
+        )
+
+        print(
+            f"ERROR TYPE: {type(e).__name__}",
+            flush=True
+        )
+
+        print(
+            f"ERROR: {str(e)}",
+            flush=True
+        )
+
+        print(
+            "FULL TRACEBACK:",
+            flush=True
+        )
+
+        traceback.print_exc()
+
+        print(
+            "=" * 70,
+            flush=True
+        )
+
+        raise
+
+
+# =========================================================
+# HELPER — SEND OTP EMAIL
+# =========================================================
+
+def send_otp_email(
+    email,
+    otp,
+    purpose="Email Verification"
+):
 
     # -----------------------------------------------------
-    # Password reset email
+    # REGISTRATION OTP
     # -----------------------------------------------------
 
-    if purpose == "Password Reset":
+    if purpose == "Email Verification":
 
-        body = f"""
-Hello,
-
-You requested to reset your DOC AI password.
-
-Your password reset verification code is:
-
-{otp}
-
-This code will expire in 5 minutes.
-
-If you did not request this password reset,
-you can safely ignore this email.
-
-Regards,
-DOC AI Team
-"""
-
-    # -----------------------------------------------------
-    # Registration verification email
-    # -----------------------------------------------------
-
-    else:
+        subject = (
+            "DOC AI — Email Verification Code"
+        )
 
         body = f"""
 Hello,
@@ -172,62 +306,65 @@ DOC AI Team
 """
 
     # -----------------------------------------------------
-    # Send through Resend
+    # PASSWORD RESET OTP
     # -----------------------------------------------------
 
-    response = resend.Emails.send(
-        {
-            "from": mail_from,
-            "to": [email],
-            "subject": subject,
-            "text": body
-        }
-    )
+    elif purpose == "Password Reset":
+
+        subject = (
+            "DOC AI — Password Reset Code"
+        )
+
+        body = f"""
+Hello,
+
+You requested to reset your DOC AI password.
+
+Your password reset verification code is:
+
+{otp}
+
+This code will expire in 5 minutes.
+
+If you did not request this password reset,
+you can safely ignore this email.
+
+Regards,
+DOC AI Team
+"""
 
     # -----------------------------------------------------
-    # Log response
+    # TEST EMAIL
     # -----------------------------------------------------
 
-    print(
-        "=" * 70,
-        flush=True
-    )
+    else:
 
-    print(
-        "DOC AI RESEND EMAIL",
-        flush=True
-    )
+        subject = (
+            "DOC AI — Test Email"
+        )
 
-    print(
-        f"PURPOSE: {purpose}",
-        flush=True
-    )
+        body = f"""
+Hello,
 
-    print(
-        f"RECIPIENT: {email}",
-        flush=True
-    )
+This is a test email from DOC AI.
 
-    print(
-        f"FROM: {mail_from}",
-        flush=True
-    )
+Your test verification code is:
 
-    print(
-        f"RESEND RESPONSE: {response}",
-        flush=True
-    )
+{otp}
 
-    print(
-        "=" * 70,
-        flush=True
-    )
+Regards,
+DOC AI Team
+"""
 
-    return response
+    return send_email(
+        email,
+        subject,
+        body
+    )
 
 
 # =========================================================
-# EMAIL DIAGNOSTIC — CONFIGURATION STATUS
+# EMAIL CONFIGURATION DIAGNOSTIC
 # =========================================================
 
 @auth.route(
@@ -238,7 +375,13 @@ def email_config():
 
     try:
 
-        config = current_app.config
+        api_key = current_app.config.get(
+            "RESEND_API_KEY"
+        )
+
+        mail_from = current_app.config.get(
+            "MAIL_FROM"
+        )
 
         return {
 
@@ -247,24 +390,31 @@ def email_config():
             "email_provider": "Resend",
 
             "RESEND_API_KEY_EXISTS":
-                bool(
-                    config.get(
-                        "RESEND_API_KEY"
-                    )
+                bool(api_key),
+
+            "RESEND_API_KEY_PREFIX":
+                (
+                    api_key[:5] + "..."
+                    if api_key
+                    else None
                 ),
 
             "MAIL_FROM":
-                config.get(
-                    "MAIL_FROM"
-                ),
+                mail_from,
 
             "OTP_EXPIRY_MINUTES":
-                config.get(
-                    "OTP_EXPIRY_MINUTES"
+                current_app.config.get(
+                    "OTP_EXPIRY_MINUTES",
+                    5
                 )
         }
 
     except Exception as e:
+
+        print(
+            "EMAIL CONFIG ERROR:",
+            flush=True
+        )
 
         traceback.print_exc()
 
@@ -282,16 +432,12 @@ def email_config():
 
 
 # =========================================================
-# EMAIL DIAGNOSTIC — SEND TEST EMAIL
+# EMAIL TEST
 # =========================================================
 #
-# Usage:
+# TEST URL:
 #
-# /email-test?to=your@email.com
-#
-# Example:
-#
-# https://doc-ai-fsvt.onrender.com/email-test?to=your@email.com
+# https://doc-ai-fsvt.onrender.com/email-test?to=YOUR_EMAIL
 #
 # =========================================================
 
@@ -307,7 +453,7 @@ def email_test():
     ).strip().lower()
 
     # -----------------------------------------------------
-    # Validate recipient
+    # Check recipient
     # -----------------------------------------------------
 
     if not recipient:
@@ -321,140 +467,27 @@ def email_test():
 
         }, 400
 
+    # -----------------------------------------------------
+    # Generate test OTP
+    # -----------------------------------------------------
+
+    test_otp = generate_otp()
+
     try:
 
-        # -------------------------------------------------
-        # Get configuration
-        # -------------------------------------------------
-
-        api_key = current_app.config.get(
-            "RESEND_API_KEY"
-        )
-
-        mail_from = current_app.config.get(
-            "MAIL_FROM",
-            "onboarding@resend.dev"
-        )
-
-        # -------------------------------------------------
-        # Print safe diagnostic information
-        # -------------------------------------------------
-
-        print(
-            "=" * 70,
-            flush=True
-        )
-
-        print(
-            "DOC AI RESEND EMAIL TEST",
-            flush=True
-        )
-
-        print(
-            f"RESEND_API_KEY EXISTS: "
-            f"{bool(api_key)}",
-            flush=True
-        )
-
-        print(
-            f"MAIL_FROM: "
-            f"{mail_from}",
-            flush=True
-        )
-
-        print(
-            f"RECIPIENT: "
-            f"{recipient}",
-            flush=True
-        )
-
-        print(
-            "=" * 70,
-            flush=True
-        )
-
-        # -------------------------------------------------
-        # API key check
-        # -------------------------------------------------
-
-        if not api_key:
-
-            return {
-
-                "status": "error",
-
-                "message":
-                    "RESEND_API_KEY is not configured."
-
-            }, 500
-
-        # -------------------------------------------------
-        # Configure Resend
-        # -------------------------------------------------
-
-        resend.api_key = api_key
-
-        # -------------------------------------------------
-        # Send test email
-        # -------------------------------------------------
-
-        response = resend.Emails.send(
-            {
-
-                "from": mail_from,
-
-                "to": [
-                    recipient
-                ],
-
-                "subject":
-                    "DOC AI — Resend Test Email",
-
-                "text":
-                    """
-Hello,
-
-This is a test email from DOC AI.
-
-Your Resend email configuration is working correctly.
-
-Regards,
-DOC AI Team
-"""
-
-            }
-        )
-
-        # -------------------------------------------------
-        # Log success
-        # -------------------------------------------------
-
-        print(
-            "=" * 70,
-            flush=True
-        )
-
-        print(
-            "DOC AI RESEND EMAIL TEST SUCCESS",
-            flush=True
-        )
-
-        print(
-            f"RESPONSE: {response}",
-            flush=True
-        )
-
-        print(
-            "=" * 70,
-            flush=True
+        response = send_otp_email(
+            recipient,
+            test_otp,
+            "Test"
         )
 
         return {
 
-            "status": "success",
+            "status":
+                "success",
 
             "message":
-                "Test email sent successfully.",
+                "Resend accepted the test email.",
 
             "recipient":
                 recipient,
@@ -466,34 +499,23 @@ DOC AI Team
 
     except Exception as e:
 
-        # -------------------------------------------------
-        # Detailed error logging
-        # -------------------------------------------------
-
         print(
             "=" * 70,
             flush=True
         )
 
         print(
-            "DOC AI RESEND EMAIL TEST FAILED",
+            "DOC AI EMAIL TEST FAILED",
             flush=True
         )
 
         print(
-            f"ERROR TYPE: "
-            f"{type(e).__name__}",
+            f"ERROR TYPE: {type(e).__name__}",
             flush=True
         )
 
         print(
-            f"ERROR: "
-            f"{e}",
-            flush=True
-        )
-
-        print(
-            "FULL TRACEBACK:",
+            f"ERROR: {str(e)}",
             flush=True
         )
 
@@ -506,7 +528,8 @@ DOC AI Team
 
         return {
 
-            "status": "error",
+            "status":
+                "error",
 
             "error_type":
                 type(e).__name__,
@@ -515,14 +538,13 @@ DOC AI Team
                 str(e),
 
             "message":
-                "Resend email test failed. Check Render logs."
+                "Resend test failed. Check Render logs."
 
         }, 500
 
 
 # =========================================================
 # REGISTER — STEP 1
-# ENTER EMAIL
 # =========================================================
 
 @auth.route(
@@ -531,11 +553,19 @@ DOC AI Team
 )
 def register():
 
+    # -----------------------------------------------------
+    # Already logged in
+    # -----------------------------------------------------
+
     if current_user.is_authenticated:
 
         return redirect(
             url_for("dashboard")
         )
+
+    # -----------------------------------------------------
+    # POST
+    # -----------------------------------------------------
 
     if request.method == "POST":
 
@@ -574,7 +604,7 @@ def register():
             )
 
         # -------------------------------------------------
-        # Check existing account
+        # Existing user
         # -------------------------------------------------
 
         existing_user = User.query.filter_by(
@@ -599,7 +629,7 @@ def register():
         otp = generate_otp()
 
         # -------------------------------------------------
-        # Store registration information
+        # Store registration data
         # -------------------------------------------------
 
         session[
@@ -620,9 +650,10 @@ def register():
 
             + timedelta(
                 minutes=
-                current_app.config[
-                    "OTP_EXPIRY_MINUTES"
-                ]
+                current_app.config.get(
+                    "OTP_EXPIRY_MINUTES",
+                    5
+                )
             )
 
         ).isoformat()
@@ -651,23 +682,17 @@ def register():
             )
 
             print(
-                "DOC AI EMAIL ERROR",
+                "DOC AI REGISTRATION EMAIL FAILED",
                 flush=True
             )
 
             print(
-                "PURPOSE: Registration OTP",
+                f"ERROR TYPE: {type(e).__name__}",
                 flush=True
             )
 
             print(
-                f"ERROR TYPE: "
-                f"{type(e).__name__}",
-                flush=True
-            )
-
-            print(
-                f"ERROR: {e}",
+                f"ERROR: {str(e)}",
                 flush=True
             )
 
@@ -715,6 +740,10 @@ def register():
             url_for("auth.verify_otp")
         )
 
+    # -----------------------------------------------------
+    # GET
+    # -----------------------------------------------------
+
     return render_template(
         "register.html"
     )
@@ -743,7 +772,7 @@ def verify_otp():
     )
 
     # -----------------------------------------------------
-    # Session validation
+    # Check session
     # -----------------------------------------------------
 
     if (
@@ -826,7 +855,7 @@ def verify_otp():
         ).strip()
 
         # -------------------------------------------------
-        # Validate OTP
+        # Validate
         # -------------------------------------------------
 
         if (
@@ -844,7 +873,7 @@ def verify_otp():
             )
 
         # -------------------------------------------------
-        # Attempts
+        # Attempt limit
         # -------------------------------------------------
 
         attempts = session.get(
@@ -938,6 +967,10 @@ def verify_otp():
             url_for("auth.complete_registration")
         )
 
+    # -----------------------------------------------------
+    # GET
+    # -----------------------------------------------------
+
     return render_template(
         "verify_otp.html",
         email=email,
@@ -969,6 +1002,10 @@ def resend_otp():
         return redirect(
             url_for("auth.register")
         )
+
+    # -----------------------------------------------------
+    # Check existing user
+    # -----------------------------------------------------
 
     existing_user = User.query.filter_by(
         email=email
@@ -1007,9 +1044,10 @@ def resend_otp():
 
         + timedelta(
             minutes=
-            current_app.config[
-                "OTP_EXPIRY_MINUTES"
-            ]
+            current_app.config.get(
+                "OTP_EXPIRY_MINUTES",
+                5
+            )
         )
 
     ).isoformat()
@@ -1038,23 +1076,17 @@ def resend_otp():
         )
 
         print(
-            "DOC AI EMAIL ERROR",
+            "DOC AI RESEND OTP FAILED",
             flush=True
         )
 
         print(
-            "PURPOSE: Resend Registration OTP",
+            f"ERROR TYPE: {type(e).__name__}",
             flush=True
         )
 
         print(
-            f"ERROR TYPE: "
-            f"{type(e).__name__}",
-            flush=True
-        )
-
-        print(
-            f"ERROR: {e}",
+            f"ERROR: {str(e)}",
             flush=True
         )
 
@@ -1103,6 +1135,10 @@ def complete_registration():
         "registration_verified"
     )
 
+    # -----------------------------------------------------
+    # Verification required
+    # -----------------------------------------------------
+
     if not email or not verified:
 
         flash(
@@ -1113,6 +1149,10 @@ def complete_registration():
         return redirect(
             url_for("auth.register")
         )
+
+    # -----------------------------------------------------
+    # POST
+    # -----------------------------------------------------
 
     if request.method == "POST":
 
@@ -1131,6 +1171,10 @@ def complete_registration():
             ""
         )
 
+        # -------------------------------------------------
+        # Name
+        # -------------------------------------------------
+
         if not name:
 
             flash(
@@ -1141,6 +1185,10 @@ def complete_registration():
             return redirect(
                 url_for("auth.complete_registration")
             )
+
+        # -------------------------------------------------
+        # Password
+        # -------------------------------------------------
 
         if len(password) < 8:
 
@@ -1153,6 +1201,10 @@ def complete_registration():
                 url_for("auth.complete_registration")
             )
 
+        # -------------------------------------------------
+        # Confirm
+        # -------------------------------------------------
+
         if password != confirm_password:
 
             flash(
@@ -1163,6 +1215,10 @@ def complete_registration():
             return redirect(
                 url_for("auth.complete_registration")
             )
+
+        # -------------------------------------------------
+        # Double check user
+        # -------------------------------------------------
 
         existing_user = User.query.filter_by(
             email=email
@@ -1181,9 +1237,17 @@ def complete_registration():
                 url_for("auth.login")
             )
 
+        # -------------------------------------------------
+        # Hash password
+        # -------------------------------------------------
+
         hashed_password = generate_password_hash(
             password
         )
+
+        # -------------------------------------------------
+        # Create user
+        # -------------------------------------------------
 
         new_user = User(
             name=name,
@@ -1192,11 +1256,37 @@ def complete_registration():
             role="user"
         )
 
-        db.session.add(
-            new_user
-        )
+        try:
 
-        db.session.commit()
+            db.session.add(
+                new_user
+            )
+
+            db.session.commit()
+
+        except Exception:
+
+            db.session.rollback()
+
+            print(
+                "DOC AI USER CREATION ERROR",
+                flush=True
+            )
+
+            traceback.print_exc()
+
+            flash(
+                "❌ Unable to create your account. Please try again.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("auth.complete_registration")
+            )
+
+        # -------------------------------------------------
+        # Clear registration session
+        # -------------------------------------------------
 
         session.pop(
             "registration_email",
@@ -1208,6 +1298,10 @@ def complete_registration():
             None
         )
 
+        # -------------------------------------------------
+        # Success
+        # -------------------------------------------------
+
         flash(
             f"🎉 Welcome to DOC AI, {name}! Your account has been created successfully.",
             "success"
@@ -1217,6 +1311,10 @@ def complete_registration():
             url_for("auth.login")
         )
 
+    # -----------------------------------------------------
+    # GET
+    # -----------------------------------------------------
+
     return render_template(
         "complete_registration.html",
         email=email
@@ -1225,7 +1323,6 @@ def complete_registration():
 
 # =========================================================
 # FORGOT PASSWORD — STEP 1
-# ENTER EMAIL
 # =========================================================
 
 @auth.route(
@@ -1234,11 +1331,19 @@ def complete_registration():
 )
 def forgot_password():
 
+    # -----------------------------------------------------
+    # Already logged in
+    # -----------------------------------------------------
+
     if current_user.is_authenticated:
 
         return redirect(
             url_for("dashboard")
         )
+
+    # -----------------------------------------------------
+    # POST
+    # -----------------------------------------------------
 
     if request.method == "POST":
 
@@ -1248,7 +1353,7 @@ def forgot_password():
         ).strip().lower()
 
         # -------------------------------------------------
-        # Validate email
+        # Validate
         # -------------------------------------------------
 
         if not email:
@@ -1277,7 +1382,7 @@ def forgot_password():
             )
 
         # -------------------------------------------------
-        # Find account
+        # Find user
         # -------------------------------------------------
 
         user = User.query.filter_by(
@@ -1323,9 +1428,10 @@ def forgot_password():
 
             + timedelta(
                 minutes=
-                current_app.config[
-                    "OTP_EXPIRY_MINUTES"
-                ]
+                current_app.config.get(
+                    "OTP_EXPIRY_MINUTES",
+                    5
+                )
             )
 
         ).isoformat()
@@ -1340,7 +1446,7 @@ def forgot_password():
         )
 
         # -------------------------------------------------
-        # SEND RESET OTP USING RESEND
+        # Send password reset email
         # -------------------------------------------------
 
         try:
@@ -1359,28 +1465,17 @@ def forgot_password():
             )
 
             print(
-                "DOC AI EMAIL ERROR",
+                "DOC AI PASSWORD RESET EMAIL FAILED",
                 flush=True
             )
 
             print(
-                "PURPOSE: Password Reset OTP",
+                f"ERROR TYPE: {type(e).__name__}",
                 flush=True
             )
 
             print(
-                f"ERROR TYPE: "
-                f"{type(e).__name__}",
-                flush=True
-            )
-
-            print(
-                f"ERROR: {e}",
-                flush=True
-            )
-
-            print(
-                "FULL TRACEBACK:",
+                f"ERROR: {str(e)}",
                 flush=True
             )
 
@@ -1390,10 +1485,6 @@ def forgot_password():
                 "=" * 70,
                 flush=True
             )
-
-            # -------------------------------------------------
-            # Clear reset OTP
-            # -------------------------------------------------
 
             session.pop(
                 "password_reset_otp",
@@ -1432,6 +1523,10 @@ def forgot_password():
             url_for("auth.verify_reset_otp")
         )
 
+    # -----------------------------------------------------
+    # GET
+    # -----------------------------------------------------
+
     return render_template(
         "forgot_password.html"
     )
@@ -1439,7 +1534,7 @@ def forgot_password():
 
 # =========================================================
 # FORGOT PASSWORD — STEP 2
-# VERIFY RESET OTP
+# VERIFY OTP
 # =========================================================
 
 @auth.route(
@@ -1467,7 +1562,7 @@ def verify_reset_otp():
     )
 
     # -----------------------------------------------------
-    # Validate session
+    # Check session
     # -----------------------------------------------------
 
     if (
@@ -1522,7 +1617,7 @@ def verify_reset_otp():
         )
 
     # -----------------------------------------------------
-    # Expiry
+    # Check expiry
     # -----------------------------------------------------
 
     if datetime.utcnow() > expiry:
@@ -1563,7 +1658,7 @@ def verify_reset_otp():
         ).strip()
 
         # -------------------------------------------------
-        # Validate OTP
+        # Validate
         # -------------------------------------------------
 
         if (
@@ -1616,7 +1711,7 @@ def verify_reset_otp():
             )
 
         # -------------------------------------------------
-        # Compare
+        # Compare OTP
         # -------------------------------------------------
 
         entered_hash = hash_otp(
@@ -1674,6 +1769,10 @@ def verify_reset_otp():
         return redirect(
             url_for("auth.reset_password")
         )
+
+    # -----------------------------------------------------
+    # GET
+    # -----------------------------------------------------
 
     return render_template(
         "verify_reset_otp.html",
@@ -1799,14 +1898,36 @@ def reset_password():
             )
 
         # -------------------------------------------------
-        # Save new password
+        # Update password
         # -------------------------------------------------
 
         user.password = generate_password_hash(
             password
         )
 
-        db.session.commit()
+        try:
+
+            db.session.commit()
+
+        except Exception:
+
+            db.session.rollback()
+
+            print(
+                "DOC AI PASSWORD UPDATE ERROR",
+                flush=True
+            )
+
+            traceback.print_exc()
+
+            flash(
+                "❌ Unable to update password. Please try again.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("auth.reset_password")
+            )
 
         # -------------------------------------------------
         # Clear reset session
@@ -1822,6 +1943,10 @@ def reset_password():
             None
         )
 
+        # -------------------------------------------------
+        # Success
+        # -------------------------------------------------
+
         flash(
             "✅ Password changed successfully. Please login.",
             "success"
@@ -1830,6 +1955,10 @@ def reset_password():
         return redirect(
             url_for("auth.login")
         )
+
+    # -----------------------------------------------------
+    # GET
+    # -----------------------------------------------------
 
     return render_template(
         "reset_password.html"
@@ -1846,11 +1975,19 @@ def reset_password():
 )
 def login():
 
+    # -----------------------------------------------------
+    # Already logged in
+    # -----------------------------------------------------
+
     if current_user.is_authenticated:
 
         return redirect(
             url_for("dashboard")
         )
+
+    # -----------------------------------------------------
+    # POST
+    # -----------------------------------------------------
 
     if request.method == "POST":
 
@@ -1899,7 +2036,7 @@ def login():
             )
 
         # -------------------------------------------------
-        # Check password
+        # Password
         # -------------------------------------------------
 
         if not check_password_hash(
@@ -1918,7 +2055,7 @@ def login():
 
         # -------------------------------------------------
         # Login
-        # -------------------------------------------------
+        # -----------------------------------------------------
 
         login_user(
             user
@@ -1932,6 +2069,10 @@ def login():
         return redirect(
             url_for("dashboard")
         )
+
+    # -----------------------------------------------------
+    # GET
+    # -----------------------------------------------------
 
     return render_template(
         "login.html"
@@ -1971,6 +2112,10 @@ def logout():
 )
 @login_required
 def settings():
+
+    # -----------------------------------------------------
+    # POST
+    # -----------------------------------------------------
 
     if request.method == "POST":
 
@@ -2048,7 +2193,7 @@ def settings():
                 )
 
             # -------------------------------------------------
-            # Prevent same password
+            # Same password
             # -------------------------------------------------
 
             if check_password_hash(
@@ -2073,7 +2218,29 @@ def settings():
                 new_password
             )
 
-            db.session.commit()
+            try:
+
+                db.session.commit()
+
+            except Exception:
+
+                db.session.rollback()
+
+                print(
+                    "DOC AI SETTINGS PASSWORD ERROR",
+                    flush=True
+                )
+
+                traceback.print_exc()
+
+                flash(
+                    "❌ Unable to change password.",
+                    "danger"
+                )
+
+                return redirect(
+                    url_for("auth.settings")
+                )
 
             flash(
                 "✅ Password changed successfully.",
@@ -2108,7 +2275,29 @@ def settings():
 
             current_user.name = name
 
-            db.session.commit()
+            try:
+
+                db.session.commit()
+
+            except Exception:
+
+                db.session.rollback()
+
+                print(
+                    "DOC AI PROFILE UPDATE ERROR",
+                    flush=True
+                )
+
+                traceback.print_exc()
+
+                flash(
+                    "❌ Unable to update profile.",
+                    "danger"
+                )
+
+                return redirect(
+                    url_for("auth.settings")
+                )
 
             flash(
                 "✅ Profile updated successfully.",
@@ -2118,6 +2307,10 @@ def settings():
             return redirect(
                 url_for("auth.settings")
             )
+
+    # -----------------------------------------------------
+    # GET
+    # -----------------------------------------------------
 
     return render_template(
         "settings.html",
