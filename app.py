@@ -2,10 +2,11 @@ import os
 import zipfile
 import logging
 import uuid
+import threading
 
 from io import BytesIO
 from functools import wraps
-import base64
+
 from flask import (
     Flask,
     render_template,
@@ -57,42 +58,24 @@ from rag_engine import ask_question
 
 app = Flask(__name__)
 
-@app.route("/health")
-def health():
+app.config.from_object(Config)
 
-    try:
-        from models import User, Document
 
-        users = User.query.count()
-        documents = Document.query.count()
-
-        return {
-            "status": "ok",
-            "database": "SQLite",
-            "users": users,
-            "documents": documents
-        }
-
-    except Exception as e:
-
-        import traceback
-        traceback.print_exc()
-
-        return {
-            "status": "error",
-            "error_type": type(e).__name__,
-            "error": str(e)
-        }, 500
-
+# ============================================================
+# ERROR HANDLER
+# ============================================================
 
 @app.errorhandler(Exception)
 def handle_exception(e):
+
     import traceback
 
     print("=" * 70, flush=True)
     print("DOC AI UNHANDLED EXCEPTION", flush=True)
     print(f"ERROR: {e}", flush=True)
+
     traceback.print_exc()
+
     print("=" * 70, flush=True)
 
     return (
@@ -100,9 +83,37 @@ def handle_exception(e):
         500
     )
 
-app.config.from_object(Config)
 
-# mail.init_app(app)
+# ============================================================
+# HEALTH CHECK
+# ============================================================
+
+@app.route("/health")
+def health():
+
+    try:
+
+        users = User.query.count()
+        documents = Document.query.count()
+
+        return {
+            "status": "ok",
+            "database": "connected",
+            "users": users,
+            "documents": documents
+        }
+
+    except Exception as e:
+
+        import traceback
+
+        traceback.print_exc()
+
+        return {
+            "status": "error",
+            "error_type": type(e).__name__,
+            "error": str(e)
+        }, 500
 
 
 # ============================================================
@@ -140,11 +151,9 @@ os.makedirs(
 # ============================================================
 
 db.init_app(app)
-# ============================================================
-# INITIALIZE DATABASE
-# ============================================================
 
 with app.app_context():
+
     db.create_all()
 
 
@@ -192,7 +201,6 @@ def load_user(user_id):
 # ============================================================
 
 logging.basicConfig(
-    filename="system.log",
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(message)s"
 )
@@ -238,56 +246,276 @@ def role_required(role):
 # ============================================================
 
 def process_ocr_background(
-    app,
+    app_instance,
     doc_id,
     path
 ):
 
-    with app.app_context():
+    """
+    Run OCR in a background thread.
 
-        doc = Document.query.get(
-            doc_id
-        )
+    The OCR model is loaded only inside this function,
+    so the Flask web process does not load the model
+    during application startup.
+    """
 
-        if not doc:
+    print("=" * 70, flush=True)
 
-            logging.error(
-                f"Document {doc_id} not found."
-            )
+    print(
+        f"🔄 BACKGROUND OCR STARTED",
+        flush=True
+    )
 
-            return
+    print(
+        f"DOCUMENT ID: {doc_id}",
+        flush=True
+    )
+
+    print(
+        f"FILE: {path}",
+        flush=True
+    )
+
+    print("=" * 70, flush=True)
+
+
+    with app_instance.app_context():
 
         try:
 
-            logging.info(
-                f"Starting OCR for document {doc_id}"
+            # ------------------------------------------------
+            # GET DOCUMENT
+            # ------------------------------------------------
+
+            doc = Document.query.get(
+                doc_id
+            )
+
+            if not doc:
+
+                print(
+                    f"❌ Document {doc_id} not found.",
+                    flush=True
+                )
+
+                return
+
+
+            # ------------------------------------------------
+            # MARK PROCESSING
+            # ------------------------------------------------
+
+            doc.status = "processing"
+
+            db.session.commit()
+
+
+            # ------------------------------------------------
+            # VERIFY FILE
+            # ------------------------------------------------
+
+            if not os.path.exists(path):
+
+                raise FileNotFoundError(
+                    f"Uploaded file not found: {path}"
+                )
+
+
+            print(
+                "📄 File exists.",
+                flush=True
+            )
+
+
+            # ------------------------------------------------
+            # LOAD OCR PIPELINE
+            # ------------------------------------------------
+
+            print(
+                "🧠 Importing OCR pipeline...",
+                flush=True
             )
 
             from ocr_pipeline import run_ocr
 
-            text = run_ocr(path)
+            print(
+                "✅ OCR pipeline imported.",
+                flush=True
+            )
+
+
+            # ------------------------------------------------
+            # RUN OCR
+            # ------------------------------------------------
+
+            print(
+                "=" * 70,
+                flush=True
+            )
+
+            print(
+                f"🔍 RUNNING OCR FOR DOCUMENT {doc_id}",
+                flush=True
+            )
+
+            print(
+                "⚠️ First request may take several minutes "
+                "because the OCR models are being loaded.",
+                flush=True
+            )
+
+            print(
+                "=" * 70,
+                flush=True
+            )
+
+            text = run_ocr(
+                path
+            )
+
+
+            # ------------------------------------------------
+            # NORMALIZE RESULT
+            # ------------------------------------------------
+
+            if text is None:
+
+                text = ""
+
+            elif not isinstance(
+                text,
+                str
+            ):
+
+                text = str(
+                    text
+                )
+
+
+            # ------------------------------------------------
+            # SAVE RESULT
+            # ------------------------------------------------
 
             doc.extracted_text = text
 
             doc.status = "completed"
 
-            logging.info(
-                f"OCR completed for document {doc_id}"
+            db.session.commit()
+
+
+            # ------------------------------------------------
+            # SUCCESS
+            # ------------------------------------------------
+
+            print("=" * 70, flush=True)
+
+            print(
+                f"✅ OCR COMPLETED",
+                flush=True
             )
+
+            print(
+                f"DOCUMENT ID: {doc_id}",
+                flush=True
+            )
+
+            print(
+                f"EXTRACTED CHARACTERS: {len(text)}",
+                flush=True
+            )
+
+            print("=" * 70, flush=True)
+
 
         except Exception as e:
 
-            doc.status = "failed"
+            import traceback
 
-            doc.extracted_text = (
-                f"OCR Error: {str(e)}"
+            print("=" * 70, flush=True)
+
+            print(
+                f"❌ OCR FAILED",
+                flush=True
             )
 
-            logging.exception(
-                f"OCR failed for document {doc_id}"
+            print(
+                f"DOCUMENT ID: {doc_id}",
+                flush=True
             )
 
-        db.session.commit()
+            print(
+                f"ERROR TYPE: {type(e).__name__}",
+                flush=True
+            )
+
+            print(
+                f"ERROR: {str(e)}",
+                flush=True
+            )
+
+            print(
+                "FULL TRACEBACK:",
+                flush=True
+            )
+
+            traceback.print_exc()
+
+            print("=" * 70, flush=True)
+
+
+            # ------------------------------------------------
+            # UPDATE DATABASE
+            # ------------------------------------------------
+
+            try:
+
+                doc = Document.query.get(
+                    doc_id
+                )
+
+                if doc:
+
+                    doc.status = "failed"
+
+                    doc.extracted_text = (
+                        f"OCR Error: {str(e)}"
+                    )
+
+                    db.session.commit()
+
+            except Exception as db_error:
+
+                print(
+                    f"❌ DATABASE UPDATE FAILED: "
+                    f"{db_error}",
+                    flush=True
+                )
+
+                traceback.print_exc()
+
+                db.session.rollback()
+
+
+        finally:
+
+            # ------------------------------------------------
+            # CLEAN DATABASE SESSION
+            # ------------------------------------------------
+
+            try:
+
+                db.session.remove()
+
+            except Exception:
+
+                pass
+
+
+            print(
+                f"🏁 BACKGROUND OCR FINISHED "
+                f"FOR DOCUMENT {doc_id}",
+                flush=True
+            )
 
 
 # ============================================================
@@ -297,10 +525,6 @@ def process_ocr_background(
 @app.route("/")
 @login_required
 def dashboard():
-
-    # ========================================================
-    # DEBUG
-    # ========================================================
 
     print(
         "DEBUG:",
@@ -313,7 +537,8 @@ def dashboard():
         else None,
         current_user.role
         if current_user.is_authenticated
-        else None
+        else None,
+        flush=True
     )
 
 
@@ -393,10 +618,6 @@ def dashboard():
 @login_required
 def delete_user(user_id):
 
-    # --------------------------------------------------------
-    # ADMIN CHECK
-    # --------------------------------------------------------
-
     if current_user.role != "admin":
 
         flash(
@@ -409,18 +630,10 @@ def delete_user(user_id):
         )
 
 
-    # --------------------------------------------------------
-    # GET USER
-    # --------------------------------------------------------
-
     user = User.query.get_or_404(
         user_id
     )
 
-
-    # --------------------------------------------------------
-    # PREVENT SELF DELETE
-    # --------------------------------------------------------
 
     if user.id == current_user.id:
 
@@ -434,10 +647,6 @@ def delete_user(user_id):
         )
 
 
-    # --------------------------------------------------------
-    # PREVENT ADMIN DELETE
-    # --------------------------------------------------------
-
     if user.role == "admin":
 
         flash(
@@ -449,10 +658,6 @@ def delete_user(user_id):
             url_for("dashboard")
         )
 
-
-    # --------------------------------------------------------
-    # DELETE USER DOCUMENTS
-    # --------------------------------------------------------
 
     documents = Document.query.filter_by(
         user_id=user.id
@@ -485,10 +690,6 @@ def delete_user(user_id):
         )
 
 
-    # --------------------------------------------------------
-    # DELETE USER
-    # --------------------------------------------------------
-
     db.session.delete(
         user
     )
@@ -518,10 +719,6 @@ def delete_user(user_id):
 @login_required
 def delete_document_admin(doc_id):
 
-    # --------------------------------------------------------
-    # ADMIN CHECK
-    # --------------------------------------------------------
-
     if current_user.role != "admin":
 
         flash(
@@ -534,18 +731,10 @@ def delete_document_admin(doc_id):
         )
 
 
-    # --------------------------------------------------------
-    # GET DOCUMENT
-    # --------------------------------------------------------
-
     doc = Document.query.get_or_404(
         doc_id
     )
 
-
-    # --------------------------------------------------------
-    # DELETE PHYSICAL FILE
-    # --------------------------------------------------------
 
     if doc.stored_path:
 
@@ -567,22 +756,12 @@ def delete_document_admin(doc_id):
             )
 
 
-    # --------------------------------------------------------
-    # DELETE CHAT HISTORY
-    # --------------------------------------------------------
-
     ChatHistory.query.filter_by(
-
         document_id=doc.id
-
     ).delete(
         synchronize_session=False
     )
 
-
-    # --------------------------------------------------------
-    # DELETE DATABASE RECORD
-    # --------------------------------------------------------
 
     db.session.delete(
         doc
@@ -613,14 +792,29 @@ def delete_document_admin(doc_id):
 @login_required
 def upload():
 
+    print("=" * 70, flush=True)
+
+    print(
+        "📥 DOC AI UPLOAD REQUEST",
+        flush=True
+    )
+
+    print(
+        f"USER: {current_user.email}",
+        flush=True
+    )
+
+    print("=" * 70, flush=True)
+
+
     files = request.files.getlist(
         "documents"
     )
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # CHECK FILES
-    # --------------------------------------------------------
+    # ========================================================
 
     if not files:
 
@@ -665,7 +859,7 @@ def upload():
 
 
         # ----------------------------------------------------
-        # SECURE ORIGINAL FILENAME
+        # SECURE FILENAME
         # ----------------------------------------------------
 
         original_filename = secure_filename(
@@ -679,29 +873,24 @@ def upload():
 
 
         # ----------------------------------------------------
-        # CREATE UNIQUE FILENAME
+        # UNIQUE FILENAME
         # ----------------------------------------------------
 
         unique_name = (
-
             f"{uuid.uuid4()}_"
             f"{original_filename}"
-
         )
 
 
         save_path = os.path.join(
-
             upload_folder,
-
             unique_name
-
         )
 
 
-        # ----------------------------------------------------
+        # ====================================================
         # SAVE FILE
-        # ----------------------------------------------------
+        # ====================================================
 
         try:
 
@@ -709,7 +898,12 @@ def upload():
                 save_path
             )
 
-        except Exception as e:
+            print(
+                f"✅ FILE SAVED: {save_path}",
+                flush=True
+            )
+
+        except Exception:
 
             logging.exception(
                 "Failed to save uploaded file."
@@ -723,9 +917,9 @@ def upload():
             continue
 
 
-        # ----------------------------------------------------
+        # ====================================================
         # CREATE DATABASE RECORD
-        # ----------------------------------------------------
+        # ====================================================
 
         try:
 
@@ -746,11 +940,22 @@ def upload():
                 doc
             )
 
+
             db.session.commit()
 
 
             uploaded_count += 1
 
+
+            print(
+                f"✅ DATABASE RECORD CREATED",
+                flush=True
+            )
+
+            print(
+                f"DOCUMENT ID: {doc.id}",
+                flush=True
+            )
 
         except Exception:
 
@@ -759,6 +964,7 @@ def upload():
             logging.exception(
                 "Failed to create document record."
             )
+
 
             try:
 
@@ -774,94 +980,66 @@ def upload():
 
                 pass
 
+
             continue
 
 
-        # ----------------------------------------------------
-        # START OCR USING CELERY
-        # ----------------------------------------------------
-        # ======================================
-# START OCR USING CELERY
-# ======================================
+        # ====================================================
+        # START BACKGROUND OCR
+        # ====================================================
 
-try:
+        try:
 
-    from celery_tasks import process_ocr_task
+            print(
+                f"🚀 STARTING BACKGROUND OCR "
+                f"FOR DOCUMENT {doc.id}",
+                flush=True
+            )
 
-    # --------------------------------------------------
-    # Read uploaded file
-    # --------------------------------------------------
 
-    with open(
-        save_path,
-        "rb"
-    ) as uploaded_file:
+            thread = threading.Thread(
 
-        file_bytes = uploaded_file.read()
+                target=process_ocr_background,
 
-    # --------------------------------------------------
-    # Convert to Base64
-    # --------------------------------------------------
+                args=(
+                    app,
+                    doc.id,
+                    save_path
+                ),
 
-    file_data_b64 = base64.b64encode(
-        file_bytes
-    ).decode("utf-8")
+                daemon=True
 
-    # --------------------------------------------------
-    # Send file to Celery worker
-    # --------------------------------------------------
+            )
 
-    task = process_ocr_task.delay(
-        doc.id,
-        file_data_b64,
-        original_filename
-    )
 
-    logging.info(
-        f"✅ OCR task queued successfully. "
-        f"Document ID: {doc.id}, "
-        f"Celery Task ID: {task.id}"
-    )
+            thread.start()
 
-except Exception as e:
 
-    logging.exception(
-        f"❌ Failed to start OCR "
-        f"for document {doc.id}"
-    )
+            print(
+                f"✅ BACKGROUND OCR THREAD STARTED "
+                f"FOR DOCUMENT {doc.id}",
+                flush=True
+            )
 
-    doc.status = "failed"
 
-    doc.extracted_text = (
-        f"OCR task could not be started: {str(e)}"
-    )
+        except Exception as e:
 
-    db.session.commit()
+            logging.exception(
+                f"❌ Failed to start OCR "
+                f"for document {doc.id}"
+            )
 
-        
 
-        
+            doc.status = "failed"
 
-        
-        
-        
-        
-        
 
-        
+            doc.extracted_text = (
+                "OCR task could not be started: "
+                f"{str(e)}"
+            )
 
-        
-        
-        
-        
 
-        
-
-        
-        
-        
-
-        
+            db.session.commit()
 
 
     # ========================================================
@@ -874,6 +1052,7 @@ except Exception as e:
 
             f"{uploaded_count} document(s) uploaded. "
             "OCR processing started.",
+
             "success"
 
         )
@@ -912,11 +1091,8 @@ def view_document(doc_id):
     # --------------------------------------------------------
 
     if (
-
         doc.user_id != current_user.id
-
         and current_user.role != "admin"
-
     ):
 
         return "Unauthorized", 403
@@ -1006,19 +1182,12 @@ def document_file(doc_id):
     # --------------------------------------------------------
 
     if (
-
         doc.user_id != current_user.id
-
         and current_user.role != "admin"
-
     ):
 
         return "Unauthorized", 403
 
-
-    # --------------------------------------------------------
-    # CHECK PATH
-    # --------------------------------------------------------
 
     if not doc.stored_path:
 
@@ -1036,10 +1205,6 @@ def document_file(doc_id):
 
         return "File not found", 404
 
-
-    # --------------------------------------------------------
-    # SEND FILE
-    # --------------------------------------------------------
 
     return send_file(
         doc.stored_path
@@ -1067,18 +1232,15 @@ def delete_document_user(doc_id):
     # --------------------------------------------------------
 
     if (
-
         doc.user_id != current_user.id
-
         and current_user.role != "admin"
-
     ):
 
         return "Unauthorized", 403
 
 
     # --------------------------------------------------------
-    # DELETE ORIGINAL FILE
+    # DELETE FILE
     # --------------------------------------------------------
 
     if doc.stored_path:
@@ -1121,7 +1283,7 @@ def delete_document_user(doc_id):
 
 
     # --------------------------------------------------------
-    # DELETE DOCUMENT DATABASE RECORD
+    # DELETE DATABASE RECORD
     # --------------------------------------------------------
 
     db.session.delete(
@@ -1169,19 +1331,12 @@ def ask_route(doc_id):
     # --------------------------------------------------------
 
     if (
-
         doc.user_id != current_user.id
-
         and current_user.role != "admin"
-
     ):
 
         return "Unauthorized", 403
 
-
-    # --------------------------------------------------------
-    # GET QUESTION
-    # --------------------------------------------------------
 
     question = request.form.get(
         "question",
@@ -1205,10 +1360,6 @@ def ask_route(doc_id):
 
         )
 
-
-    # --------------------------------------------------------
-    # CHECK OCR RESULT
-    # --------------------------------------------------------
 
     if not doc.extracted_text:
 
@@ -1242,10 +1393,6 @@ def ask_route(doc_id):
         )
 
 
-        # ----------------------------------------------------
-        # SAVE CHAT
-        # ----------------------------------------------------
-
         chat = ChatHistory(
 
             document_id=doc.id,
@@ -1263,12 +1410,14 @@ def ask_route(doc_id):
             chat
         )
 
+
         db.session.commit()
 
 
     except Exception as e:
 
         db.session.rollback()
+
 
         logging.exception(
             "RAG processing failed"
@@ -1277,7 +1426,8 @@ def ask_route(doc_id):
 
         print(
             "RAG ERROR:",
-            e
+            e,
+            flush=True
         )
 
 
@@ -1317,19 +1467,12 @@ def download_pdf(doc_id):
     # --------------------------------------------------------
 
     if (
-
         doc.user_id != current_user.id
-
         and current_user.role != "admin"
-
     ):
 
         return "Unauthorized", 403
 
-
-    # --------------------------------------------------------
-    # OUTPUT PATH
-    # --------------------------------------------------------
 
     output_path = os.path.join(
 
@@ -1339,10 +1482,6 @@ def download_pdf(doc_id):
 
     )
 
-
-    # --------------------------------------------------------
-    # CREATE PDF
-    # --------------------------------------------------------
 
     pdf = SimpleDocTemplate(
 
@@ -1365,13 +1504,15 @@ def download_pdf(doc_id):
 
     ).split("\n"):
 
-        # Escape basic HTML-sensitive characters
         safe_line = (
+
             line
             .replace("&", "&amp;")
             .replace("<", "&lt;")
             .replace(">", "&gt;")
+
         )
+
 
         elements.append(
 
@@ -1390,10 +1531,6 @@ def download_pdf(doc_id):
         elements
     )
 
-
-    # --------------------------------------------------------
-    # SEND
-    # --------------------------------------------------------
 
     return send_file(
 
@@ -1427,19 +1564,12 @@ def download_word(doc_id):
     # --------------------------------------------------------
 
     if (
-
         doc.user_id != current_user.id
-
         and current_user.role != "admin"
-
     ):
 
         return "Unauthorized", 403
 
-
-    # --------------------------------------------------------
-    # OUTPUT PATH
-    # --------------------------------------------------------
 
     output_path = os.path.join(
 
@@ -1449,10 +1579,6 @@ def download_word(doc_id):
 
     )
 
-
-    # --------------------------------------------------------
-    # CREATE WORD DOCUMENT
-    # --------------------------------------------------------
 
     word_doc = WordDocument()
 
@@ -1468,10 +1594,6 @@ def download_word(doc_id):
         output_path
     )
 
-
-    # --------------------------------------------------------
-    # SEND
-    # --------------------------------------------------------
 
     return send_file(
 
@@ -1516,10 +1638,6 @@ def bulk_download():
     memory_file = BytesIO()
 
 
-    # --------------------------------------------------------
-    # CREATE ZIP
-    # --------------------------------------------------------
-
     with zipfile.ZipFile(
 
         memory_file,
@@ -1557,13 +1675,8 @@ def bulk_download():
             # ------------------------------------------------
 
             if (
-
-                doc.user_id
-                != current_user.id
-
-                and current_user.role
-                != "admin"
-
+                doc.user_id != current_user.id
+                and current_user.role != "admin"
             ):
 
                 continue
@@ -1601,10 +1714,6 @@ def bulk_download():
     memory_file.seek(0)
 
 
-    # --------------------------------------------------------
-    # SEND ZIP
-    # --------------------------------------------------------
-
     return send_file(
 
         memory_file,
@@ -1621,17 +1730,26 @@ def bulk_download():
 # RUN
 # ============================================================
 
-
 if __name__ == "__main__":
-    
+
     with app.app_context():
+
         db.create_all()
 
+
     app.run(
+
         host="0.0.0.0",
-        port=int(os.environ.get("PORT", 5000)),
-        debug=True
+
+        port=int(
+
+            os.environ.get(
+                "PORT",
+                5000
+            )
+
+        ),
+
+        debug=False
+
     )
-
-
-

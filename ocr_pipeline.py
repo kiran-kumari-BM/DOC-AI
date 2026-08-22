@@ -34,7 +34,7 @@ os.makedirs(
 
 
 # ============================================================
-# LAZY MODEL VARIABLES
+# GLOBAL MODEL VARIABLES
 # ============================================================
 
 ocr = None
@@ -42,9 +42,11 @@ processor = None
 model = None
 device = None
 
+_models_loaded = False
+
 
 # ============================================================
-# LOAD OCR MODELS ONLY WHEN NEEDED
+# LOAD MODELS ONCE
 # ============================================================
 
 def load_ocr_models():
@@ -53,15 +55,41 @@ def load_ocr_models():
     global processor
     global model
     global device
+    global _models_loaded
 
-    # --------------------------------------------------------
-    # PaddleOCR
-    # --------------------------------------------------------
+    if _models_loaded:
+
+        print(
+            "✅ OCR models already loaded.",
+            flush=True
+        )
+
+        return
+
+    print(
+        "=" * 70,
+        flush=True
+    )
+
+    print(
+        "🧠 LOADING OCR MODELS",
+        flush=True
+    )
+
+    print(
+        "=" * 70,
+        flush=True
+    )
+
+    # ========================================================
+    # PADDLEOCR
+    # ========================================================
 
     if ocr is None:
 
         print(
-            "🔄 Loading PaddleOCR for the first OCR request..."
+            "🔄 Loading PaddleOCR...",
+            flush=True
         )
 
         from paddleocr import PaddleOCR
@@ -72,17 +100,19 @@ def load_ocr_models():
         )
 
         print(
-            "✅ PaddleOCR loaded."
+            "✅ PaddleOCR loaded.",
+            flush=True
         )
 
-    # --------------------------------------------------------
-    # TrOCR
-    # --------------------------------------------------------
+    # ========================================================
+    # TROCR
+    # ========================================================
 
     if processor is None or model is None:
 
         print(
-            "🔄 Loading TrOCR for the first OCR request..."
+            "🔄 Loading TrOCR base handwritten model...",
+            flush=True
         )
 
         import torch
@@ -92,12 +122,16 @@ def load_ocr_models():
             VisionEncoderDecoderModel
         )
 
+        MODEL_NAME = (
+            "microsoft/trocr-base-handwritten"
+        )
+
         processor = TrOCRProcessor.from_pretrained(
-            "microsoft/trocr-large-handwritten"
+            MODEL_NAME
         )
 
         model = VisionEncoderDecoderModel.from_pretrained(
-            "microsoft/trocr-large-handwritten"
+            MODEL_NAME
         )
 
         device = (
@@ -107,11 +141,30 @@ def load_ocr_models():
         )
 
         model.to(device)
+
         model.eval()
 
         print(
-            f"✅ TrOCR loaded on {device}."
+            f"✅ TrOCR loaded on {device}.",
+            flush=True
         )
+
+    _models_loaded = True
+
+    print(
+        "=" * 70,
+        flush=True
+    )
+
+    print(
+        "✅ ALL OCR MODELS LOADED",
+        flush=True
+    )
+
+    print(
+        "=" * 70,
+        flush=True
+    )
 
 
 # ============================================================
@@ -121,6 +174,7 @@ def load_ocr_models():
 def is_valid_crop(crop):
 
     if crop is None:
+
         return False
 
     h, w = crop.shape[:2]
@@ -141,40 +195,40 @@ def main(
     save_debug=True
 ):
 
-    # --------------------------------------------------------
-    # Load models ONLY now
-    # --------------------------------------------------------
+    # ========================================================
+    # LOAD MODELS
+    # ========================================================
 
     load_ocr_models()
 
-    # --------------------------------------------------------
-    # Absolute path
-    # --------------------------------------------------------
+    # ========================================================
+    # ABSOLUTE PATH
+    # ========================================================
 
     image_path = os.path.abspath(
         image_path
     )
 
     print(
-        "🧠 OCR reading:",
-        image_path
+        f"🧠 OCR reading: {image_path}",
+        flush=True
     )
 
-    # --------------------------------------------------------
-    # Validate file
-    # --------------------------------------------------------
+    # ========================================================
+    # CHECK FILE
+    # ========================================================
 
     if not os.path.exists(
         image_path
     ):
 
-        raise ValueError(
-            f"❌ Image not found: {image_path}"
+        raise FileNotFoundError(
+            f"Image not found: {image_path}"
         )
 
-    # --------------------------------------------------------
-    # Read image
-    # --------------------------------------------------------
+    # ========================================================
+    # READ IMAGE
+    # ========================================================
 
     img = cv2.imread(
         image_path
@@ -183,14 +237,19 @@ def main(
     if img is None:
 
         raise ValueError(
-            f"❌ OpenCV failed to read: {image_path}"
+            f"OpenCV failed to read: {image_path}"
         )
 
     debug_img = img.copy()
 
-    # --------------------------------------------------------
-    # PaddleOCR detection
-    # --------------------------------------------------------
+    # ========================================================
+    # PADDLEOCR DETECTION
+    # ========================================================
+
+    print(
+        "🔍 Running PaddleOCR text detection...",
+        flush=True
+    )
 
     results = ocr.predict(
         img
@@ -200,27 +259,46 @@ def main(
 
     for page in results:
 
+        if "dt_polys" not in page:
+
+            continue
+
         for poly in page["dt_polys"]:
 
             boxes.append(
                 poly
             )
 
+    print(
+        f"📦 Detected {len(boxes)} text regions.",
+        flush=True
+    )
+
+    # ========================================================
+    # NO TEXT
+    # ========================================================
+
     if not boxes:
 
-        return [
-            "⚠️ No text detected"
-        ]
+        return "⚠️ No text detected"
 
-    # --------------------------------------------------------
-    # OCR each detected region
-    # --------------------------------------------------------
+    # ========================================================
+    # OCR EACH REGION
+    # ========================================================
 
     lines = []
 
     crop_id = 0
 
-    for poly in boxes:
+    import torch
+
+    for index, poly in enumerate(boxes):
+
+        print(
+            f"📝 Processing region "
+            f"{index + 1}/{len(boxes)}...",
+            flush=True
+        )
 
         pts = np.array(
             poly,
@@ -229,6 +307,30 @@ def main(
 
         x, y, w, h = cv2.boundingRect(
             pts
+        )
+
+        # ----------------------------------------------------
+        # Keep coordinates inside image
+        # ----------------------------------------------------
+
+        x = max(
+            0,
+            x
+        )
+
+        y = max(
+            0,
+            y
+        )
+
+        w = min(
+            w,
+            img.shape[1] - x
+        )
+
+        h = min(
+            h,
+            img.shape[0] - y
         )
 
         crop = img[
@@ -242,9 +344,9 @@ def main(
 
             continue
 
-        # ----------------------------------------------------
-        # Save crop
-        # ----------------------------------------------------
+        # ====================================================
+        # SAVE CROP
+        # ====================================================
 
         crop_path = os.path.join(
             CROP_DIR,
@@ -258,13 +360,22 @@ def main(
 
         crop_id += 1
 
-        # ----------------------------------------------------
-        # TrOCR
-        # ----------------------------------------------------
+        # ====================================================
+        # CONVERT TO PIL
+        # ====================================================
 
         pil_img = Image.fromarray(
-            crop
-        ).convert("RGB")
+            cv2.cvtColor(
+                crop,
+                cv2.COLOR_BGR2RGB
+            )
+        ).convert(
+            "RGB"
+        )
+
+        # ====================================================
+        # PROCESS IMAGE
+        # ====================================================
 
         pixel_values = processor(
             images=pil_img,
@@ -273,7 +384,9 @@ def main(
             device
         )
 
-        import torch
+        # ====================================================
+        # TROCR
+        # ====================================================
 
         with torch.no_grad():
 
@@ -287,15 +400,24 @@ def main(
             skip_special_tokens=True
         )[0].strip()
 
+        # ====================================================
+        # SAVE TEXT
+        # ====================================================
+
         if text:
 
             lines.append(
                 text
             )
 
-        # ----------------------------------------------------
-        # Debug box
-        # ----------------------------------------------------
+            print(
+                f"   ✓ {text}",
+                flush=True
+            )
+
+        # ====================================================
+        # DEBUG BOX
+        # ====================================================
 
         cv2.rectangle(
             debug_img,
@@ -305,9 +427,9 @@ def main(
             2
         )
 
-    # --------------------------------------------------------
-    # Save debug image
-    # --------------------------------------------------------
+    # ========================================================
+    # SAVE DEBUG IMAGE
+    # ========================================================
 
     if save_debug:
 
@@ -322,11 +444,21 @@ def main(
         )
 
         print(
-            "🖼 Debug boxes saved:",
-            debug_path
+            f"🖼 Debug image saved: {debug_path}",
+            flush=True
         )
 
-    return lines
+    # ========================================================
+    # RESULT
+    # ========================================================
+
+    if not lines:
+
+        return "⚠️ No readable text detected"
+
+    return "\n".join(
+        lines
+    )
 
 
 # ============================================================
@@ -335,13 +467,9 @@ def main(
 
 def run_ocr(image_path):
 
-    lines = main(
+    return main(
         image_path,
         save_debug=True
-    )
-
-    return "\n".join(
-        lines
     )
 
 
@@ -351,8 +479,14 @@ def run_ocr(image_path):
 
 if __name__ == "__main__":
 
+    result = run_ocr(
+        "uploads/test.jpg"
+    )
+
     print(
-        run_ocr(
-            "uploads/test.jpg"
-        )
+        "\n========== OCR RESULT ==========\n"
+    )
+
+    print(
+        result
     )

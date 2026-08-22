@@ -3,13 +3,17 @@ import sys
 import base64
 import traceback
 import importlib.util
-import tempfile
 
 from flask import Flask
 
 from celery_app import celery
+
 from config import Config
-from models import db, Document
+
+from models import (
+    db,
+    Document
+)
 
 
 # ============================================================
@@ -30,6 +34,13 @@ if PROJECT_DIR not in sys.path:
 
 
 # ============================================================
+# GLOBAL OCR PIPELINE
+# ============================================================
+
+OCR_RUNNER = None
+
+
+# ============================================================
 # CREATE LIGHTWEIGHT FLASK APP
 # ============================================================
 
@@ -39,13 +50,14 @@ def create_celery_flask_app():
     Creates a lightweight Flask application for the Celery
     worker.
 
-    We intentionally do NOT import app.py.
+    We intentionally DO NOT import app.py.
 
     This prevents:
+
         - circular imports
+        - loading Flask routes
         - loading the complete web application
-        - unnecessary Flask routes
-        - unnecessary application startup
+        - unnecessary startup work
     """
 
     flask_app = Flask(
@@ -53,7 +65,7 @@ def create_celery_flask_app():
     )
 
     # --------------------------------------------------------
-    # Load project configuration
+    # Load configuration
     # --------------------------------------------------------
 
     flask_app.config.from_object(
@@ -65,13 +77,19 @@ def create_celery_flask_app():
     # --------------------------------------------------------
 
     flask_app.config["UPLOAD_FOLDER"] = os.path.join(
+
         PROJECT_DIR,
+
         "uploads"
+
     )
 
     os.makedirs(
+
         flask_app.config["UPLOAD_FOLDER"],
+
         exist_ok=True
+
     )
 
     # --------------------------------------------------------
@@ -79,17 +97,23 @@ def create_celery_flask_app():
     # --------------------------------------------------------
 
     flask_app.config["OUTPUT_FOLDER"] = os.path.join(
+
         PROJECT_DIR,
+
         "outputs"
+
     )
 
     os.makedirs(
+
         flask_app.config["OUTPUT_FOLDER"],
+
         exist_ok=True
+
     )
 
     # --------------------------------------------------------
-    # Initialize database
+    # Database
     # --------------------------------------------------------
 
     db.init_app(
@@ -106,26 +130,60 @@ def create_celery_flask_app():
 def load_ocr_pipeline():
 
     """
-    Dynamically loads ocr_pipeline.py.
+    Loads ocr_pipeline.py once.
 
-    The OCR model is loaded INSIDE the Celery worker,
-    not inside the Flask web process.
+    The result is cached in OCR_RUNNER.
+
+    This is extremely important because the OCR model may be
+    large and expensive to load.
     """
 
+    global OCR_RUNNER
+
+    # --------------------------------------------------------
+    # Already loaded
+    # --------------------------------------------------------
+
+    if OCR_RUNNER is not None:
+
+        print(
+            "♻️ Reusing already loaded OCR pipeline.",
+            flush=True
+        )
+
+        return OCR_RUNNER
+
+    # --------------------------------------------------------
+    # OCR path
+    # --------------------------------------------------------
+
     ocr_path = os.path.join(
+
         PROJECT_DIR,
+
         "ocr_pipeline.py"
+
     )
 
-    print("=" * 70, flush=True)
-
     print(
-        f"📂 Looking for OCR pipeline:"
-        f" {ocr_path}",
+        "=" * 70,
         flush=True
     )
 
-    print("=" * 70, flush=True)
+    print(
+        "🧠 LOADING OCR PIPELINE",
+        flush=True
+    )
+
+    print(
+        f"Path: {ocr_path}",
+        flush=True
+    )
+
+    print(
+        "=" * 70,
+        flush=True
+    )
 
     # --------------------------------------------------------
     # Check file
@@ -136,16 +194,22 @@ def load_ocr_pipeline():
     ):
 
         raise FileNotFoundError(
-            f"OCR pipeline not found: {ocr_path}"
+
+            f"OCR pipeline not found: "
+            f"{ocr_path}"
+
         )
 
     # --------------------------------------------------------
-    # Create module specification
+    # Module specification
     # --------------------------------------------------------
 
     spec = importlib.util.spec_from_file_location(
+
         "ocr_pipeline",
+
         ocr_path
+
     )
 
     if (
@@ -154,15 +218,20 @@ def load_ocr_pipeline():
     ):
 
         raise ImportError(
-            "Could not create OCR pipeline module specification."
+
+            "Could not create OCR pipeline "
+            "module specification."
+
         )
 
     # --------------------------------------------------------
     # Create module
     # --------------------------------------------------------
 
-    ocr_module = importlib.util.module_from_spec(
-        spec
+    ocr_module = (
+        importlib.util.module_from_spec(
+            spec
+        )
     )
 
     # --------------------------------------------------------
@@ -174,11 +243,11 @@ def load_ocr_pipeline():
     ] = ocr_module
 
     # --------------------------------------------------------
-    # Execute module
+    # Execute
     # --------------------------------------------------------
 
     print(
-        "🧠 Loading OCR pipeline...",
+        "⏳ Importing OCR pipeline and loading models...",
         flush=True
     )
 
@@ -186,13 +255,8 @@ def load_ocr_pipeline():
         ocr_module
     )
 
-    print(
-        "✅ OCR pipeline loaded successfully.",
-        flush=True
-    )
-
     # --------------------------------------------------------
-    # Verify run_ocr
+    # Check run_ocr
     # --------------------------------------------------------
 
     if not hasattr(
@@ -201,10 +265,41 @@ def load_ocr_pipeline():
     ):
 
         raise AttributeError(
-            "ocr_pipeline.py does not contain run_ocr()."
+
+            "ocr_pipeline.py does not contain "
+            "run_ocr()."
+
         )
 
-    return ocr_module.run_ocr
+    # --------------------------------------------------------
+    # Cache
+    # --------------------------------------------------------
+
+    OCR_RUNNER = (
+        ocr_module.run_ocr
+    )
+
+    print(
+        "=" * 70,
+        flush=True
+    )
+
+    print(
+        "✅ OCR PIPELINE LOADED",
+        flush=True
+    )
+
+    print(
+        "The model will be reused for future tasks.",
+        flush=True
+    )
+
+    print(
+        "=" * 70,
+        flush=True
+    )
+
+    return OCR_RUNNER
 
 
 # ============================================================
@@ -212,50 +307,77 @@ def load_ocr_pipeline():
 # ============================================================
 
 @celery.task(
+
     bind=True,
+
     name="process_ocr_task"
+
 )
 def process_ocr_task(
+
     self,
+
     doc_id,
+
     file_data_b64,
+
     original_filename
+
 ):
 
     """
     Process one uploaded document.
 
-    IMPORTANT:
+    Arguments:
 
-    We receive the file as Base64 data instead of relying on
-    the web service's local filesystem.
+        doc_id
+            Database document ID.
 
-    This is important on Render because the Flask Web Service
-    and Celery Background Worker are separate services.
+        file_data_b64
+            Base64 encoded uploaded file.
+
+        original_filename
+            Original uploaded filename.
+
+    The file is transferred through Redis/Celery.
+
+    The worker then writes it to its own local temporary
+    filesystem and runs OCR.
     """
 
     flask_app = None
 
     temporary_path = None
 
-    print("=" * 70, flush=True)
-
     print(
-        f"🔄 CELERY OCR TASK STARTED",
+        "=" * 70,
         flush=True
     )
 
     print(
-        f"Document ID: {doc_id}",
+        "🔄 CELERY OCR TASK STARTED",
         flush=True
     )
 
     print(
-        f"Filename: {original_filename}",
+        f"DOCUMENT ID: {doc_id}",
         flush=True
     )
 
-    print("=" * 70, flush=True)
+    print(
+        f"FILENAME: {original_filename}",
+        flush=True
+    )
+
+    print(
+        f"CELERY TASK ID: {self.request.id}",
+        flush=True
+    )
+
+    print(
+        "=" * 70,
+        flush=True
+    )
 
     try:
 
@@ -263,10 +385,12 @@ def process_ocr_task(
         # CREATE FLASK APP
         # ====================================================
 
-        flask_app = create_celery_flask_app()
+        flask_app = (
+            create_celery_flask_app()
+        )
 
         # ====================================================
-        # FLASK APPLICATION CONTEXT
+        # APPLICATION CONTEXT
         # ====================================================
 
         with flask_app.app_context():
@@ -282,14 +406,19 @@ def process_ocr_task(
             if not doc:
 
                 print(
-                    f"❌ Document {doc_id} not found.",
+                    f"❌ Document {doc_id} "
+                    f"does not exist.",
                     flush=True
                 )
 
                 return {
+
                     "status": "failed",
+
                     "doc_id": doc_id,
+
                     "error": "Document not found"
+
                 }
 
             # =================================================
@@ -304,21 +433,26 @@ def process_ocr_task(
             # DECODE FILE
             # =================================================
 
+            print(
+                "📦 Decoding uploaded file...",
+                flush=True
+            )
+
             try:
 
-                print(
-                    "📦 Decoding uploaded file...",
-                    flush=True
-                )
-
-                file_bytes = base64.b64decode(
-                    file_data_b64
+                file_bytes = (
+                    base64.b64decode(
+                        file_data_b64
+                    )
                 )
 
             except Exception as e:
 
                 raise RuntimeError(
-                    f"Could not decode uploaded file: {e}"
+
+                    f"Could not decode uploaded "
+                    f"file: {e}"
+
                 )
 
             # =================================================
@@ -332,41 +466,70 @@ def process_ocr_task(
                 )
 
             print(
-                f"📄 File size: "
-                f"{len(file_bytes)} bytes",
+
+                f"📄 Received "
+                f"{len(file_bytes)} bytes.",
+
                 flush=True
+
             )
 
             # =================================================
-            # CREATE WORKER TEMP FILE
+            # CREATE WORKER UPLOAD DIRECTORY
             # =================================================
 
             worker_upload_folder = os.path.join(
+
                 PROJECT_DIR,
+
                 "uploads"
+
             )
 
             os.makedirs(
+
                 worker_upload_folder,
+
                 exist_ok=True
+
             )
 
-            # -------------------------------------------------
-            # Make filename safe
-            # -------------------------------------------------
+            # =================================================
+            # SAFE FILENAME
+            # =================================================
 
             safe_filename = os.path.basename(
+
                 original_filename
+
             )
 
+            # Prevent weird/empty names
+
+            if not safe_filename:
+
+                safe_filename = (
+                    f"document_{doc_id}"
+                )
+
+            # =================================================
+            # TEMPORARY PATH
+            # =================================================
+
             temporary_filename = (
-                f"celery_{doc_id}_"
+
+                f"celery_"
+                f"{doc_id}_"
                 f"{safe_filename}"
+
             )
 
             temporary_path = os.path.join(
+
                 worker_upload_folder,
+
                 temporary_filename
+
             )
 
             # =================================================
@@ -374,14 +537,20 @@ def process_ocr_task(
             # =================================================
 
             print(
-                f"💾 Writing temporary file:"
-                f" {temporary_path}",
+
+                f"💾 Writing worker file: "
+                f"{temporary_path}",
+
                 flush=True
+
             )
 
             with open(
+
                 temporary_path,
+
                 "wb"
+
             ) as f:
 
                 f.write(
@@ -389,7 +558,7 @@ def process_ocr_task(
                 )
 
             # =================================================
-            # VERIFY FILE
+            # VERIFY
             # =================================================
 
             if not os.path.isfile(
@@ -397,13 +566,33 @@ def process_ocr_task(
             ):
 
                 raise FileNotFoundError(
-                    f"Worker could not create file:"
-                    f" {temporary_path}"
+
+                    f"Worker could not create: "
+                    f"{temporary_path}"
+
                 )
 
             print(
-                "✅ Temporary file created.",
+                "✅ Worker file created.",
                 flush=True
+            )
+
+            # =================================================
+            # CELERY STATE
+            # =================================================
+
+            self.update_state(
+
+                state="STARTED",
+
+                meta={
+
+                    "doc_id": doc_id,
+
+                    "stage": "Loading OCR model"
+
+                }
+
             )
 
             # =================================================
@@ -411,53 +600,68 @@ def process_ocr_task(
             # =================================================
 
             print(
-                "🧠 Loading OCR model/pipeline...",
+                "🧠 Preparing OCR pipeline...",
                 flush=True
             )
 
-            run_ocr = load_ocr_pipeline()
+            run_ocr = (
+                load_ocr_pipeline()
+            )
 
             print(
-                "✅ OCR model/pipeline ready.",
+                "✅ OCR pipeline ready.",
                 flush=True
             )
 
             # =================================================
-            # UPDATE CELERY STATE
+            # UPDATE STATE
             # =================================================
 
             self.update_state(
+
                 state="STARTED",
+
                 meta={
+
                     "doc_id": doc_id,
-                    "stage": "OCR processing"
+
+                    "stage": "Running OCR"
+
                 }
+
             )
 
             # =================================================
             # RUN OCR
             # =================================================
 
-            print("=" * 70, flush=True)
-
             print(
-                f"🔍 RUNNING OCR FOR DOCUMENT {doc_id}",
+                "=" * 70,
                 flush=True
             )
 
             print(
-                f"Input: {temporary_path}",
+                f"🔍 RUNNING OCR "
+                f"FOR DOCUMENT {doc_id}",
                 flush=True
             )
 
-            print("=" * 70, flush=True)
+            print(
+                f"INPUT: {temporary_path}",
+                flush=True
+            )
+
+            print(
+                "=" * 70,
+                flush=True
+            )
 
             text = run_ocr(
                 temporary_path
             )
 
             # =================================================
-            # VALIDATE RESULT
+            # NORMALIZE RESULT
             # =================================================
 
             if text is None:
@@ -474,7 +678,7 @@ def process_ocr_task(
                 )
 
             # =================================================
-            # SAVE OCR RESULT
+            # SAVE RESULT
             # =================================================
 
             doc.extracted_text = text
@@ -487,43 +691,66 @@ def process_ocr_task(
             # SUCCESS
             # =================================================
 
-            print("=" * 70, flush=True)
-
             print(
-                f"✅ OCR COMPLETED"
-                f" — DOCUMENT {doc_id}",
+                "=" * 70,
                 flush=True
             )
 
             print(
-                f"Extracted characters: {len(text)}",
+                "✅ OCR COMPLETED",
                 flush=True
             )
 
-            print("=" * 70, flush=True)
+            print(
+                f"DOCUMENT ID: {doc_id}",
+                flush=True
+            )
+
+            print(
+                f"EXTRACTED CHARACTERS: "
+                f"{len(text)}",
+                flush=True
+            )
+
+            print(
+                "=" * 70,
+                flush=True
+            )
 
             return {
+
                 "status": "completed",
+
                 "doc_id": doc_id,
+
                 "characters": len(text)
+
             }
 
     # ========================================================
-    # EXPECTED TASK ERROR
+    # ERROR
     # ========================================================
 
     except Exception as e:
 
-        print("=" * 70, flush=True)
-
         print(
-            f"❌ OCR TASK FAILED"
-            f" — DOCUMENT {doc_id}",
+            "=" * 70,
             flush=True
         )
 
         print(
-            f"ERROR TYPE: {type(e).__name__}",
+            "❌ CELERY OCR TASK FAILED",
+            flush=True
+        )
+
+        print(
+            f"DOCUMENT ID: {doc_id}",
+            flush=True
+        )
+
+        print(
+            f"ERROR TYPE: "
+            f"{type(e).__name__}",
             flush=True
         )
 
@@ -539,10 +766,13 @@ def process_ocr_task(
 
         traceback.print_exc()
 
-        print("=" * 70, flush=True)
+        print(
+            "=" * 70,
+            flush=True
+        )
 
         # ----------------------------------------------------
-        # Update database
+        # UPDATE DATABASE
         # ----------------------------------------------------
 
         try:
@@ -560,7 +790,11 @@ def process_ocr_task(
                         doc.status = "failed"
 
                         doc.extracted_text = (
-                            f"OCR Error: {str(e)}"
+
+                            "OCR Error: "
+
+                            + str(e)
+
                         )
 
                         db.session.commit()
@@ -568,9 +802,12 @@ def process_ocr_task(
         except Exception as db_error:
 
             print(
-                "❌ Could not update failed task "
-                f"in database: {db_error}",
+
+                "❌ DATABASE UPDATE FAILED:",
+                str(db_error),
+
                 flush=True
+
             )
 
             traceback.print_exc()
@@ -580,19 +817,23 @@ def process_ocr_task(
         # ----------------------------------------------------
 
         return {
+
             "status": "failed",
+
             "doc_id": doc_id,
+
             "error": str(e)
+
         }
 
     # ========================================================
-    # FINALLY
+    # CLEANUP
     # ========================================================
 
     finally:
 
         # ----------------------------------------------------
-        # Remove temporary worker file
+        # Remove temporary file
         # ----------------------------------------------------
 
         if temporary_path:
@@ -608,21 +849,28 @@ def process_ocr_task(
                     )
 
                     print(
-                        f"🗑️ Removed temporary file:"
-                        f" {temporary_path}",
+
+                        f"🗑️ Removed temporary "
+                        f"file: {temporary_path}",
+
                         flush=True
+
                     )
 
             except Exception as cleanup_error:
 
                 print(
-                    f"⚠️ Could not remove temporary "
-                    f"file: {cleanup_error}",
+
+                    "⚠️ Could not remove "
+                    f"temporary file: "
+                    f"{cleanup_error}",
+
                     flush=True
+
                 )
 
         # ----------------------------------------------------
-        # Remove SQLAlchemy session
+        # Remove database session
         # ----------------------------------------------------
 
         try:
@@ -638,7 +886,10 @@ def process_ocr_task(
             pass
 
         print(
-            f"🏁 Celery task finished for "
-            f"document {doc_id}",
+
+            f"🏁 Celery task finished "
+            f"for document {doc_id}",
+
             flush=True
+
         )
