@@ -56,31 +56,35 @@ from rag_engine import ask_question
 # ============================================================
 
 app = Flask(__name__)
+
 @app.route("/health")
 def health():
 
     try:
-
         from models import User, Document
 
-        user_count = User.query.count()
-        document_count = Document.query.count()
+        users = User.query.count()
+        documents = Document.query.count()
 
         return {
             "status": "ok",
             "database": "SQLite",
-            "users": user_count,
-            "documents": document_count
+            "users": users,
+            "documents": documents
         }
 
     except Exception as e:
+
+        import traceback
+        traceback.print_exc()
 
         return {
             "status": "error",
             "error_type": type(e).__name__,
             "error": str(e)
         }, 500
-    
+
+
 @app.errorhandler(Exception)
 def handle_exception(e):
     import traceback
