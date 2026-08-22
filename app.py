@@ -7,6 +7,9 @@ import threading
 from io import BytesIO
 from functools import wraps
 
+
+
+
 from flask import (
     Flask,
     render_template,
@@ -14,8 +17,15 @@ from flask import (
     redirect,
     url_for,
     send_file,
-    flash
+    flash,
+    send_from_directory
 )
+
+from werkzeug.exceptions import HTTPException
+
+
+
+
 
 from flask_login import (
     LoginManager,
@@ -57,6 +67,13 @@ from rag_engine import ask_question
 # ============================================================
 
 app = Flask(__name__)
+@app.route("/favicon.ico")
+def favicon():
+    return send_from_directory(
+        os.path.join(app.root_path, "static", "images"),
+        "doc-ai-logo.png",
+        mimetype="image/png"
+    )
 
 app.config.from_object(Config)
 
@@ -67,6 +84,14 @@ app.config.from_object(Config)
 
 @app.errorhandler(Exception)
 def handle_exception(e):
+
+    # --------------------------------------------------------
+    # Allow normal HTTP errors such as 404, 403, 405, etc.
+    # to remain their original status codes.
+    # --------------------------------------------------------
+
+    if isinstance(e, HTTPException):
+        return e
 
     import traceback
 
